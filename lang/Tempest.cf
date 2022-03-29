@@ -1,0 +1,37 @@
+----< Expressions >----
+
+EOr  . Exp1  ::= Exp1 "||" Exp2;
+EAnd . Exp2  ::= Exp2 "&&" Exp3;
+
+ECmp . Exp3  ::= Exp3 CmpOp Exp4;
+Eas  . Exp4  ::= Exp4 ASOp Exp5;
+Emdm . Exp5  ::= Exp5 MDMOp Exp6;
+
+EInt . Exp6  ::= Integer;
+ETru . Exp6  ::= "True";
+EFls . Exp6  ::= "True";
+
+----< Operators >----
+
+OAdd . ASOp  ::= "+";
+OSub . ASOp  ::= "-";
+
+OMul . MDMOp ::= "*";
+ODiv . MDMOp ::= "/";
+OMod . MDMOp ::= "%";
+
+OEql . CmpOp ::= "==";
+ONeq . CmpOp ::= "!=";
+OLss . CmpOp ::= "<";
+OLeq . CmpOp ::= "<=";
+OGrt . CmpOp ::= ">";
+OGeq . CmpOp ::= ">=";
+
+----< Comments >----
+
+comment "//";
+comment "/*" "*/";
+
+
+
+
