@@ -13,10 +13,10 @@
 + 11 (funkcje zwracające wartość)
   Na 30 punktów
 + 12 (4) (statyczne typowanie)
-+-13 (2) (funkcje zagnieżdżone ze statycznym wiązaniem)
++ 13 (2) (funkcje zagnieżdżone ze statycznym wiązaniem)
   14 (1/2) (rekordy/listy/tablice/tablice wielowymiarowe)
   15 (2) (krotki z przypisaniem)
-+-16 (1) (break, continue)
+  16 (1) (break, continue)
   17 (4) (funkcje wyższego rzędu, anonimowe, domknięcia)
   18 (3) (generatory)
 

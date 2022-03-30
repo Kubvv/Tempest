@@ -1,37 +1,92 @@
+----< Programs >----
+
+entrypoints Program;
+
+Program.   Program ::= [Def];
+
+FnDef.	   Def ::= Type Ident "(" [Arg] ")" Block;
+GlDef.     Def ::= Type Ident "=" Expr ";";
+
+separator nonempty Def "";
+
+----< Arguments >----
+
+VArg. 	   Arg ::= Type Ident;
+RArg.      Arg ::= Type "@" Ident;
+
+separator  Arg ",";
+
+----< Statements >----
+
+Block.     Block ::= "{" [Stmt] "}";
+
+SEmpty.    Stmt ::= ";";
+SBStmt.    Stmt ::= Block;
+
+SInit.     Stmt ::= Def;
+SAss.      Stmt ::= Ident "=" Expr ";";
+SIncr.     Stmt ::= Ident "++" ";";
+SDecr.     Stmt ::= Ident "--" ";";
+
+SRet.       Stmt ::= "return" Expr ";";
+SVRet.     Stmt ::= "return" ";";
+SCond.     Stmt ::= "if" "(" Expr ")" Block;
+SCondElse. Stmt ::= "if" "(" Expr ")" Block "else" Block;
+SWhile.    Stmt ::= "while" "(" Expr ")" Block;
+
+SExp.      Stmt ::= Expr ";";
+
+separator  Stmt "";
+
+----< Types >----
+
+TInt.      Type ::= "int";
+TStr.      Type ::= "string";
+TBool.     Type ::= "boolean";
+TVoid.     Type ::= "void";
+TFun.      Type ::= Type "(" [Type] ")";
+
+separator  Type "," ;
+
 ----< Expressions >----
 
-EOr  . Exp1  ::= Exp1 "||" Exp2;
-EAnd . Exp2  ::= Exp2 "&&" Exp3;
+EVar.      Expr6 ::= Ident;
+ELitInt.   Expr6 ::= Integer;
+ELitTrue.  Expr6 ::= "true";
+ELitFalse. Expr6 ::= "false";
+EApp.      Expr6 ::= Ident "(" [Expr] ")";
+EString.   Expr6 ::= String;
 
-ECmp . Exp3  ::= Exp3 CmpOp Exp4;
-Eas  . Exp4  ::= Exp4 ASOp Exp5;
-Emdm . Exp5  ::= Exp5 MDMOp Exp6;
+Neg.       Expr5 ::= "-" Expr6;
+Not.       Expr5 ::= "!" Expr6;
 
-EInt . Exp6  ::= Integer;
-ETru . Exp6  ::= "True";
-EFls . Exp6  ::= "True";
+EMul.      Expr4 ::= Expr4 MulOp Expr5;
+EAdd.      Expr3 ::= Expr3 AddOp Expr4;
+ERel.      Expr2 ::= Expr2 RelOp Expr3;
+
+EAnd.      Expr1 ::= Expr2 "&&" Expr1;
+EOr.       Expr ::= Expr1 "||" Expr;
+
+coercions  Expr 6;
+separator  Expr ",";
 
 ----< Operators >----
 
-OAdd . ASOp  ::= "+";
-OSub . ASOp  ::= "-";
+OAdd.      AddOp ::= "+";
+OSub.      AddOp ::= "-";
 
-OMul . MDMOp ::= "*";
-ODiv . MDMOp ::= "/";
-OMod . MDMOp ::= "%";
+OMul.      MulOp ::= "*";
+ODiv.      MulOp ::= "/";
+OMod.      MulOp ::= "%";
 
-OEql . CmpOp ::= "==";
-ONeq . CmpOp ::= "!=";
-OLss . CmpOp ::= "<";
-OLeq . CmpOp ::= "<=";
-OGrt . CmpOp ::= ">";
-OGeq . CmpOp ::= ">=";
+OLs.       RelOp ::= "<";
+OLe.       RelOp ::= "<=";
+OGr.       RelOp ::= ">";
+OGe.       RelOp ::= ">=";
+OEq.       RelOp ::= "==";
+ONe.       RelOp ::= "!=";
 
 ----< Comments >----
 
-comment "//";
-comment "/*" "*/";
-
-
-
-
+comment    "//";
+comment    "/*" "*/";
