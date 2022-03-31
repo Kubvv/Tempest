@@ -1,0 +1,16 @@
+void functionA(int i) {
+    i++;
+}
+
+void functionB(int @i) {
+    i++;
+}
+
+int main() {
+    
+    int i = 1;
+    functionA(i);
+    functionB(i);
+
+    return 0;
+}

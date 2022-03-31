@@ -1,0 +1,18 @@
+boolean functionA(boolean b) {
+    return !b;
+}
+
+int main() {
+
+    int z = 0;
+    if (functionA(false)) {
+        functionB(z);
+        printInt(z);
+    }
+
+    return 0;
+}
+
+void functionB(int i) {
+    i++;
+}
