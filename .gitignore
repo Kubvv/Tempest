@@ -1,3 +1,5 @@
+/lang/bnfc/**
+
 dist
 dist-*
 cabal-dev

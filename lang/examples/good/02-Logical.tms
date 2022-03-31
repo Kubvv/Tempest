@@ -1,0 +1,7 @@
+int main () { 
+  boolean a = true && false; 
+  boolean b = true || false;
+
+  boolean advancedLogical = (true || false) && (false || false);
+  return 0;
+}

@@ -1,0 +1,6 @@
+int main () {
+  int x = 5;
+  boolean y = false;
+  string z = "i'm a string";
+  return 0;
+}

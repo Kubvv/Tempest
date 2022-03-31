@@ -1,0 +1,9 @@
+int main() {
+    string a = "some string";
+    string b = a;
+    int c = 10;
+    int d = 10 + c;
+    boolean e = true;
+    boolean f = false && e;
+    return 0;
+}

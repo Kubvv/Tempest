@@ -1,0 +1,33 @@
+int x = 2;
+int y = 3;
+string z = "print me!";
+
+int someFun(int byValue, int @byRef) {
+    if (byValue > byRef) {
+        byValue % 2;
+        return byValue + 42;
+    } else {
+        byRef++;
+    }
+
+    if (byRef % 4 == 1) {
+        return 0;
+    }
+
+    return byValue;
+}
+
+int main() {
+
+    int byvalue = 3;
+    int byref = 5;
+    int res = someFun(byvalue, byref);
+
+    while (res > 0) {
+        x = x + y;
+        res--;
+    }
+
+    printString(z);
+    return 0;
+}
