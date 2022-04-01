@@ -2,6 +2,7 @@ int x = 2;
 int y = 3;
 string z = "print me!";
 
+//This is someFun();
 int someFun(int byValue, int @byRef) {
 
     int someNestedFun() {
@@ -22,6 +23,7 @@ int someFun(int byValue, int @byRef) {
     return byValue + someNestedFun();
 }
 
+/* And this is main */
 int main() {
 
     int byvalue = 3;
