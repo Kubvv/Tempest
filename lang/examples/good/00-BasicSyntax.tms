@@ -3,8 +3,13 @@ int y = 3;
 string z = "print me!";
 
 int someFun(int byValue, int @byRef) {
-    if (byValue > byRef) {
-        byValue % 2;
+
+    int someNestedFun() {
+        return y;
+    }
+
+    if (byValue > byRef && (true || false)) {
+        byValue = byValue % 2;
         return byValue + 42;
     } else {
         byRef++;
@@ -14,7 +19,7 @@ int someFun(int byValue, int @byRef) {
         return 0;
     }
 
-    return byValue;
+    return byValue + someNestedFun();
 }
 
 int main() {

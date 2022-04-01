@@ -1,0 +1,13 @@
+int x = 1;
+boolean t = true;
+string z = "print me!";
+
+int main() {
+
+    if (t) {
+        x = x + 1;
+        printString(z);
+    }
+
+    return 0;
+}
