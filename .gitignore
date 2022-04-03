@@ -1,4 +1,5 @@
 /lang/bnfc/**
+/src/interpreter
 
 dist
 dist-*

@@ -4,10 +4,10 @@
 {-# OPTIONS_GHC -XPartialTypeSignatures #-}
 #endif
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns #-}
-module ParTempest where
-import AbsTempest
-import LexTempest
-import ErrM
+module Syntax.ParTempest where
+import Syntax.AbsTempest as AbsTempest
+import Syntax.LexTempest as LexTempest
+import Syntax.ErrM as ErrM
 import qualified Data.Array as Happy_Data_Array
 import qualified Data.Bits as Bits
 import qualified GHC.Exts as Happy_GHC_Exts
