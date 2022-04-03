@@ -3,9 +3,9 @@ module Main where
 import System.IO (hPutStrLn, stderr)
 import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
-import Syntax.ParTempest
 import System.Directory.Internal.Prelude (exitFailure)
-import Syntax.ErrM
+import Syntax.ParTempest ( pProgram, myLexer )
+import Syntax.ErrM ( Err(Ok, Bad) )
 
 main :: IO ()
 main = 
