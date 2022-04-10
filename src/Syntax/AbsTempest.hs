@@ -14,6 +14,7 @@ data Program a = Program a [Def a]
 instance Functor Program where
     fmap f x = case x of
         Program a defs -> Program (f a) (map (fmap f) defs)
+
 data Def a
     = FnDef a (Type a) Ident [Arg a] (Block a)
     | GlDef a (Type a) Ident (Expr a)
@@ -23,6 +24,7 @@ instance Functor Def where
     fmap f x = case x of
         FnDef a type_ ident args block -> FnDef (f a) (fmap f type_) ident (map (fmap f) args) (fmap f block)
         GlDef a type_ ident expr -> GlDef (f a) (fmap f type_) ident (fmap f expr)
+
 data Arg a = VArg a (Type a) Ident | RArg a (Type a) Ident
   deriving (Eq, Ord, Show, Read)
 
@@ -30,12 +32,14 @@ instance Functor Arg where
     fmap f x = case x of
         VArg a type_ ident -> VArg (f a) (fmap f type_) ident
         RArg a type_ ident -> RArg (f a) (fmap f type_) ident
+
 data Block a = Block a [Stmt a]
   deriving (Eq, Ord, Show, Read)
 
 instance Functor Block where
     fmap f x = case x of
         Block a stmts -> Block (f a) (map (fmap f) stmts)
+
 data Stmt a
     = SEmpty a
     | SBStmt a (Block a)
@@ -65,6 +69,7 @@ instance Functor Stmt where
         SCondElse a expr block1 block2 -> SCondElse (f a) (fmap f expr) (fmap f block1) (fmap f block2)
         SWhile a expr block -> SWhile (f a) (fmap f expr) (fmap f block)
         SExp a expr -> SExp (f a) (fmap f expr)
+
 data Type a
     = TInt a | TStr a | TBool a | TVoid a | TFun a (Type a) [Type a]
   deriving (Eq, Ord, Show, Read)
@@ -76,6 +81,7 @@ instance Functor Type where
         TBool a -> TBool (f a)
         TVoid a -> TVoid (f a)
         TFun a type_ types -> TFun (f a) (fmap f type_) (map (fmap f) types)
+
 data Expr a
     = EVar a Ident
     | ELitInt a Integer
@@ -107,6 +113,7 @@ instance Functor Expr where
         ERel a expr1 relop expr2 -> ERel (f a) (fmap f expr1) (fmap f relop) (fmap f expr2)
         EAnd a expr1 expr2 -> EAnd (f a) (fmap f expr1) (fmap f expr2)
         EOr a expr1 expr2 -> EOr (f a) (fmap f expr1) (fmap f expr2)
+
 data AddOp a = OAdd a | OSub a
   deriving (Eq, Ord, Show, Read)
 
@@ -114,6 +121,7 @@ instance Functor AddOp where
     fmap f x = case x of
         OAdd a -> OAdd (f a)
         OSub a -> OSub (f a)
+
 data MulOp a = OMul a | ODiv a | OMod a
   deriving (Eq, Ord, Show, Read)
 
@@ -122,6 +130,7 @@ instance Functor MulOp where
         OMul a -> OMul (f a)
         ODiv a -> ODiv (f a)
         OMod a -> OMod (f a)
+        
 data RelOp a = OLs a | OLe a | OGr a | OGe a | OEq a | ONe a
   deriving (Eq, Ord, Show, Read)
 
