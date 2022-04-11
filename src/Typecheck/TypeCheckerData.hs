@@ -68,16 +68,27 @@ showBnfcPos Nothing = "error while printing the exception position"
 data TypeCheckException =
   BadType BNFC'Position EnvType EnvType
   | UnexpectedToken BNFC'Position Ident
+  | NotAFunction BNFC'Position EnvType
+  | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
     "Type mismatch at ", showBnfcPos pos,
-    ": Expeceted type ", show exp,
+    ", expeceted type ", show exp,
     " but got: ", show act
     ]
   show (UnexpectedToken pos id) = concat [
     "Unexpected token at ", showBnfcPos pos,
     ", namely ", show id
+    ]
+  show (NotAFunction pos act) = concat [
+    "Expected a function at ", showBnfcPos pos,
+    ", but got type ", show act
+    ]
+  show (BadArgumentTypes pos exp act) = concat [
+    "Wrong argument types at ", showBnfcPos pos,
+    ", expected types ", show exp,
+    ", but got types ", show act
     ]
 
 ---- CheckerMonad ----
