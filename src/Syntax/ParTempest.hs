@@ -333,7 +333,7 @@ happyReduce_4 = happySpecReduce_1  3# happyReduction_4
 happyReduction_4 happy_x_1
 	 =  case happyOut9 happy_x_1 of { (HappyWrap9 happy_var_1) -> 
 	happyIn7
-		 (AbsTempest.Program () happy_var_1
+		 (AbsTempest.PProgram () happy_var_1
 	)}
 
 happyReduce_5 = happyReduce 6# 4# happyReduction_5
@@ -429,7 +429,7 @@ happyReduction_14 happy_x_3
 	happy_x_1
 	 =  case happyOut14 happy_x_2 of { (HappyWrap14 happy_var_2) -> 
 	happyIn12
-		 (AbsTempest.Block () (reverse happy_var_2)
+		 (AbsTempest.BBlock () (reverse happy_var_2)
 	)}
 
 happyReduce_15 = happySpecReduce_1  9# happyReduction_15
@@ -679,7 +679,7 @@ happyReduction_44 happy_x_2
 	happy_x_1
 	 =  case happyOut17 happy_x_2 of { (HappyWrap17 happy_var_2) -> 
 	happyIn18
-		 (AbsTempest.Neg () happy_var_2
+		 (AbsTempest.ENeg () happy_var_2
 	)}
 
 happyReduce_45 = happySpecReduce_2  14# happyReduction_45
@@ -687,7 +687,7 @@ happyReduction_45 happy_x_2
 	happy_x_1
 	 =  case happyOut17 happy_x_2 of { (HappyWrap17 happy_var_2) -> 
 	happyIn18
-		 (AbsTempest.Not () happy_var_2
+		 (AbsTempest.ENot () happy_var_2
 	)}
 
 happyReduce_46 = happySpecReduce_1  14# happyReduction_46
