@@ -32,10 +32,15 @@ uniqueDefs ds = length ds == length (nubfil $ P.map defToIdent ds)
 argTypes :: [Arg BNFC'Position] -> [(Ident, EnvType)]
 argTypes [] = []
 argTypes (x:xs) = (id, t) : argTypes xs
-  where 
+  where
     id = argToIdent x
     t = argToType x
 
--- isFunctionType :: Type -> Bool
--- isFunctionType TFun {} = True
--- isFunctionType _       = False
+findByIdent :: [Def BNFC'Position] -> Maybe (Def BNFC'Position)
+findByIdent [] = Nothing
+findByIdent (fn@(FnDef _ _ (Ident id) _ _):ds) =
+  if id == "main" then
+    Just fn
+  else
+    findByIdent ds
+findByIdent (d:ds) = findByIdent ds

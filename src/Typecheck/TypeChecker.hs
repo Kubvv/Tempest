@@ -48,10 +48,23 @@ compareTypeExpr pos et e =
 runComparator :: BNFC'Position -> EnvType -> Expr BNFC'Position -> Env -> Either TypeCheckException ()
 runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
 
-checkResult :: Either TypeCheckException () -> CheckerMonad 
+checkResult :: Either TypeCheckException () -> CheckerMonad
 checkResult et = case et of
   Right _ -> return ()
   Left ex -> throwError ex
+
+checkCondition :: Bool -> TypeCheckException -> CheckerMonad
+checkCondition b ex =
+  do
+    unless b $
+      throwError ex
+
+checkMain :: Maybe (Def BNFC'Position) -> CheckerMonad
+checkMain Nothing = throwError NoMainException
+checkMain (Just (FnDef pos rt _ args _)) = do
+  let ret = toEnvType rt
+  checkCondition (ret == EnvVoid && P.null args) (WrongMainDefinitionException pos)
+checkMain (Just _) = return ()
 
 
 getType :: Expr BNFC'Position -> GetterMonad
@@ -132,6 +145,7 @@ instance Checker (Program BNFC'Position) where
       unless (uniqueDefs defs) $
         throwError (DuplicateDefinitionsException pos)
       mapM_ checkType defs
+      checkMain $ findByIdent defs
 
 instance Checker (Def BNFC'Position) where
   checkType (GlDef pos t id e) =
@@ -141,3 +155,99 @@ instance Checker (Def BNFC'Position) where
       let result = runComparator pos ext e env
       checkResult result
       put (pute env id ext)
+
+  checkType (FnDef pos rt id args block) =
+    do
+      env <- get
+      put $ pute env id (funToEnvType rt args)
+      newEnv <- get
+      put $ puteArgs newEnv (argTypes args)
+      beforeEnv <- get
+      put $ putrt beforeEnv (Just (toEnvType rt))
+      checkType block
+      afterEnv <- get
+      checkCondition (isReturn afterEnv) (NoReturnException pos)
+      put newEnv
+
+instance Checker (Block BNFC'Position) where
+  checkType (BBlock pos stmts) = mapM_ checkType stmts
+
+instance Checker (Stmt BNFC'Position) where
+  --Empty statement
+  checkType (SEmpty _) = return ()
+
+  --Block
+  checkType (SBStmt _ block) =
+    do
+      env <- get
+      checkType block
+      put env
+
+  --Init and Assignment
+  checkType (SInit _ def) = checkType def
+
+  checkType (SAss pos id e) =
+    do
+      env <- get
+      case gete env id of
+        Just et -> checkResult $ runComparator pos et e env
+        Nothing -> throwError (UnexpectedToken pos id)
+
+  --Increment and Decrement
+  checkType (SIncr pos id) =
+    do
+      env <- get
+      case gete env id of
+        Just at -> checkCondition (at == EnvInt) (BadType pos EnvInt at)
+        Nothing -> throwError (UnexpectedToken pos id)
+
+  checkType (SDecr pos id) =
+    do
+      env <- get
+      case gete env id of
+        Just at -> checkCondition (at == EnvInt) (BadType pos EnvInt at)
+        Nothing -> throwError (UnexpectedToken pos id)
+
+  --Returns
+  checkType (SRet pos e) =
+    do
+      env <- get
+      case expectedReturnType env of
+        Just et -> checkResult $ runComparator pos et e env
+        Nothing -> throwError (UnexpectedReturn pos)
+      put $ putir env True
+
+  checkType (SVRet pos) =
+    do
+      env <- get
+      case expectedReturnType env of
+        Just et -> checkCondition (et == EnvVoid) (BadType pos EnvVoid et)
+        Nothing -> throwError (UnexpectedReturn pos)
+      put $ putir env True
+
+  --Conditionals
+  checkType (SCond pos cond block) =
+    do
+      env <- get
+      checkResult $ runComparator pos EnvBool cond env
+      checkType block
+
+  checkType (SCondElse pos cond block1 block2) =
+    do
+      env <- get
+      checkResult $ runComparator pos EnvBool cond env
+      checkType block1
+      checkType block2
+
+  --While
+  checkType (SWhile pos cond block) =
+    do
+      env <- get
+      checkResult $ runComparator pos EnvBool cond env
+      checkType block
+
+  --Expression
+  checkType (SExp pos e) =
+    do
+      env <- get
+      checkResult $ runComparator pos EnvVoid e env

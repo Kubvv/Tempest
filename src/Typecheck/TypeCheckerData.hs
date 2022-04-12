@@ -31,7 +31,6 @@ instance Eq EnvType where
   (EnvFun ret1 args1) == (EnvFun ret2 args2) = and (zipWith (==) args1 args2) && (ret1 == ret2)
   _ == _ = False
 
-
 toEnvType :: Type BNFC'Position -> EnvType
 toEnvType (TInt pos) = EnvInt
 toEnvType (TBool pos) = EnvBool
@@ -39,22 +38,50 @@ toEnvType (TStr pos) = EnvStr
 toEnvType (TVoid pos) = EnvVoid
 toEnvType (TFun pos ret args) = EnvFun (toEnvType ret) (P.map toEnvType args)
 
+funToEnvType :: Type BNFC'Position -> [Arg BNFC'Position ] -> EnvType
+funToEnvType ret args = EnvFun (toEnvType ret) (P.map (toEnvType . getArgType) args)
+
+getArgType :: Arg BNFC'Position -> Type BNFC'Position
+getArgType (VArg _ t _) = t
+getArgType (RArg _ t _) = t
+
 ---- Env ----
 
-type Env = M.Map Ident EnvType
+data Env = Env {
+  typeMap :: M.Map Ident EnvType,
+  expectedReturnType :: Maybe EnvType,
+  isReturn :: Bool
+}
 
 gete :: Env -> Ident -> Maybe EnvType
-gete env s = M.lookup s env
+gete env s = M.lookup s (typeMap env)
+
+getrt :: Env -> Maybe EnvType
+getrt = expectedReturnType
+
+getir :: Env -> Bool
+getir = isReturn
 
 pute :: Env -> Ident -> EnvType -> Env
-pute env s x = M.insert s x env
+pute (Env tm rt is) id t = Env (M.insert id t tm) rt is
+
+puteArgs :: Env -> [(Ident, EnvType)] -> Env
+puteArgs env [] = env
+puteArgs env ((id, t):as) = puteArgs newEnv as
+  where newEnv = pute env id t
+
+putrt :: Env -> Maybe EnvType -> Env
+putrt (Env tm rt is) nt = Env tm nt is
+
+putir :: Env -> Bool -> Env
+putir (Env tm rt is) = Env tm rt
 
 initEnv :: Env
-initEnv = M.fromList [
+initEnv = Env (M.fromList [
   (Ident "printInt", EnvFun EnvVoid [EnvInt]),
   (Ident "printBool", EnvFun EnvVoid [EnvBool]),
   (Ident "printString", EnvFun EnvVoid [EnvStr])
-  ]
+  ]) Nothing False
 
 ---- Exception ----
 
@@ -71,6 +98,10 @@ data TypeCheckException =
   | NotAFunction BNFC'Position EnvType
   | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
   | DuplicateDefinitionsException BNFC'Position
+  | NoReturnException BNFC'Position
+  | UnexpectedReturn BNFC'Position
+  | NoMainException
+  | WrongMainDefinitionException BNFC'Position
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -91,8 +122,18 @@ instance Show TypeCheckException where
     ", expected types ", show exp,
     ", but got types ", show act
     ]
-  show (DuplicateDefinitionsException pos) = 
+  show (DuplicateDefinitionsException pos) =
     "Two definitons are named the same at " ++ showBnfcPos pos
+  show (NoReturnException pos) =
+    "No return found for function at " ++ showBnfcPos pos
+  show (UnexpectedReturn pos) =
+    "Unexpected return at " ++ showBnfcPos pos
+  show NoMainException =
+    "No main function found"
+  show (WrongMainDefinitionException pos) = concat [
+    "Wrong main definition exception at ", showBnfcPos pos,
+    "Expected return type of void and no arguments"
+    ]
 
 ---- CheckerMonad ----
 type CheckerMonad = StateT Env (ExceptT TypeCheckException Identity) ()
