@@ -14,19 +14,19 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 
-compareType :: BNFC'Position -> EnvType -> EnvType -> EmptyGetterMonad
+compareType :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EmptyGetterMonad
 compareType pos et at =
   do
     when (at /= et) $
       throwError (BadType pos et at)
 
-compareTypes :: BNFC'Position -> EnvType -> EnvType -> EnvType -> EmptyGetterMonad
+compareTypes :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EnvType -> EmptyGetterMonad
 compareTypes pos et at1 at2 =
   do
     compareType pos et at1
     compareType pos et at2
 
-checkFunction :: BNFC'Position -> EnvType -> [Expr BNFC'Position] -> GetterMonad
+checkFunction :: BNFC.Abs.BNFC'Position -> EnvType -> [Expr] -> GetterMonad
 checkFunction pos (EnvFun ret exTypes) args =
   do
     acTypes <- mapM getType args
@@ -38,14 +38,14 @@ checkFunction pos (EnvFun ret exTypes) args =
 checkFunction pos t _ =
   throwError (NotAFunction pos t)
 
-compareTypeExpr :: BNFC'Position -> EnvType -> Expr BNFC'Position -> EmptyGetterMonad
+compareTypeExpr :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> EmptyGetterMonad
 compareTypeExpr pos et e =
   do
     at <- getType e
     when (at /= et) $
       throwError (BadType pos et at)
 
-runComparator :: BNFC'Position -> EnvType -> Expr BNFC'Position -> Env -> Either TypeCheckException ()
+runComparator :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
 runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
 
 checkResult :: Either TypeCheckException () -> CheckerMonad
@@ -59,7 +59,7 @@ checkCondition b ex =
     unless b $
       throwError ex
 
-checkMain :: Maybe (Def BNFC'Position) -> CheckerMonad
+checkMain :: Maybe Def -> CheckerMonad
 checkMain Nothing = throwError NoMainException
 checkMain (Just (FnDef pos rt _ args _)) = do
   let ret = toEnvType rt
@@ -67,7 +67,7 @@ checkMain (Just (FnDef pos rt _ args _)) = do
 checkMain (Just _) = return ()
 
 
-getType :: Expr BNFC'Position -> GetterMonad
+getType :: Expr -> GetterMonad
 --Trivial
 getType (ELitFalse _) = return EnvBool
 getType (ELitTrue _) = return EnvBool
@@ -139,7 +139,7 @@ getType (EApp pos id args) =
       Nothing -> throwError (UnexpectedToken pos id)
 
 
-instance Checker (Program BNFC'Position) where
+instance Checker Program where
   checkType (PProgram pos defs) =
     do
       unless (uniqueDefs defs) $
@@ -147,7 +147,7 @@ instance Checker (Program BNFC'Position) where
       mapM_ checkType defs
       checkMain $ findByIdent defs
 
-instance Checker (Def BNFC'Position) where
+instance Checker Def where
   checkType (GlDef pos t id e) =
     do
       env <- get
@@ -169,10 +169,10 @@ instance Checker (Def BNFC'Position) where
       checkCondition (isReturn afterEnv) (NoReturnException pos)
       put newEnv
 
-instance Checker (Block BNFC'Position) where
+instance Checker Block where
   checkType (BBlock pos stmts) = mapM_ checkType stmts
 
-instance Checker (Stmt BNFC'Position) where
+instance Checker Stmt where
   --Empty statement
   checkType (SEmpty _) = return ()
 
@@ -251,3 +251,7 @@ instance Checker (Stmt BNFC'Position) where
     do
       env <- get
       checkResult $ runComparator pos EnvVoid e env
+
+runTypeCheck :: Program -> Either TypeCheckException ()
+runTypeCheck program =
+  runExcept $ evalStateT (checkType program) initEnv

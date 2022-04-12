@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances    #-}
+
 module Typecheck.TypeCheckerData where
 
 import Prelude as P
@@ -31,17 +33,17 @@ instance Eq EnvType where
   (EnvFun ret1 args1) == (EnvFun ret2 args2) = and (zipWith (==) args1 args2) && (ret1 == ret2)
   _ == _ = False
 
-toEnvType :: Type BNFC'Position -> EnvType
+toEnvType :: Type -> EnvType
 toEnvType (TInt pos) = EnvInt
 toEnvType (TBool pos) = EnvBool
 toEnvType (TStr pos) = EnvStr
 toEnvType (TVoid pos) = EnvVoid
 toEnvType (TFun pos ret args) = EnvFun (toEnvType ret) (P.map toEnvType args)
 
-funToEnvType :: Type BNFC'Position -> [Arg BNFC'Position ] -> EnvType
+funToEnvType :: Type -> [Arg] -> EnvType
 funToEnvType ret args = EnvFun (toEnvType ret) (P.map (toEnvType . getArgType) args)
 
-getArgType :: Arg BNFC'Position -> Type BNFC'Position
+getArgType :: Arg -> Type
 getArgType (VArg _ t _) = t
 getArgType (RArg _ t _) = t
 
@@ -85,23 +87,24 @@ initEnv = Env (M.fromList [
 
 ---- Exception ----
 
-showBnfcPos :: BNFC'Position -> String
+showBnfcPos :: BNFC.Abs.BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
   "line ", show r,
   ", position ", show c
   ]
 showBnfcPos Nothing = "error while printing the exception position"
 
-data TypeCheckException =
-  BadType BNFC'Position EnvType EnvType
-  | UnexpectedToken BNFC'Position Ident
-  | NotAFunction BNFC'Position EnvType
-  | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
-  | DuplicateDefinitionsException BNFC'Position
-  | NoReturnException BNFC'Position
-  | UnexpectedReturn BNFC'Position
+type TypeCheckException = TypeCheckException' BNFC.Abs.BNFC'Position 
+data TypeCheckException' a =
+  BadType a EnvType EnvType
+  | UnexpectedToken a Ident
+  | NotAFunction a EnvType
+  | BadArgumentTypes a [EnvType] [EnvType]
+  | DuplicateDefinitionsException a
+  | NoReturnException a
+  | UnexpectedReturn a
   | NoMainException
-  | WrongMainDefinitionException BNFC'Position
+  | WrongMainDefinitionException a
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [

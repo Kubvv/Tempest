@@ -2,7 +2,7 @@
 
 entrypoints Program;
 
-Program.   Program ::= [Def];
+PProgram.   Program ::= [Def];
 
 FnDef.	   Def ::= Type Ident "(" [Arg] ")" Block;
 GlDef.     Def ::= Type Ident "=" Expr ";";
@@ -18,7 +18,7 @@ separator  Arg ",";
 
 ----< Statements >----
 
-Block.     Block ::= "{" [Stmt] "}";
+BBlock.     Block ::= "{" [Stmt] "}";
 
 SEmpty.    Stmt ::= ";";
 SBStmt.    Stmt ::= Block;
@@ -57,8 +57,8 @@ ELitFalse. Expr6 ::= "false";
 EApp.      Expr6 ::= Ident "(" [Expr] ")";
 EString.   Expr6 ::= String;
 
-Neg.       Expr5 ::= "-" Expr6;
-Not.       Expr5 ::= "!" Expr6;
+ENeg.       Expr5 ::= "-" Expr6;
+ENot.       Expr5 ::= "!" Expr6;
 
 EMul.      Expr4 ::= Expr4 MulOp Expr5;
 EAdd.      Expr3 ::= Expr3 AddOp Expr4;

@@ -4,8 +4,10 @@ import System.IO (hPutStrLn, stderr)
 import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import System.Directory.Internal.Prelude (exitFailure)
+import Syntax.AbsTempest
 import Syntax.ParTempest ( pProgram, myLexer )
-import Syntax.ErrM ( Err(Ok, Bad) )
+import Typecheck.TypeChecker
+import BNFC.Abs (BNFC'Position)
 
 main :: IO ()
 main = 
@@ -41,11 +43,14 @@ exitErrWithMessage err =
 checkSyntax :: String -> IO ()
 checkSyntax input = 
   case pProgram $ myLexer input of
-    Bad err -> exitErrWithMessage err
-    Ok t -> exitSuccess --interpret t
+    Left err -> exitErrWithMessage err
+    Right t -> checkTypes t
+
+checkTypes :: Program -> IO ()
+checkTypes t =
+  case runTypeCheck t of
+    Left err -> exitErrWithMessage $ show err
+    Right _ -> exitSuccess
   
 -- interpret :: Program -> IO ()
 -- interpret t =
---   case typeCheck t of
---     Left err -> exitErrWithMessage err
---     Right _ -> exitSuccess
