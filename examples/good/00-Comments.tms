@@ -2,6 +2,6 @@
 
 /* I'm also a
 comment! */
-int main() {
-    return 0;
+void main() {
+    return;
 }

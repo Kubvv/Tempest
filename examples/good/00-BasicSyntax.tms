@@ -24,7 +24,7 @@ int someFun(int byValue, int @byRef) {
 }
 
 /* And this is main */
-int main() {
+void main() {
 
     int byvalue = 3;
     int byref = 5;
@@ -38,6 +38,5 @@ int main() {
     printString(z);
     printInt(3);
     printBool(true);
-    
-    return 0;
+    return;
 }

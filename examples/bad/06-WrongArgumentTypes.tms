@@ -1,0 +1,8 @@
+int fun(int x, bool y, string z) {
+  return x+y+z;
+}
+
+void main() {
+  int l = fun(5, true, false);
+  return;
+}

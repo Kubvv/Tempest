@@ -1,4 +1,4 @@
-int main () {
-  printString("hello worl"d) ;
-  return 0 ;
+void main () {
+  printString("hello worl"d);
+  return;
 }

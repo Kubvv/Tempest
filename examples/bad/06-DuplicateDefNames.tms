@@ -1,0 +1,9 @@
+int x = 0;
+
+void x(int y) {
+  return;
+}
+
+void main () {
+  return;
+}
