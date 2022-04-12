@@ -30,6 +30,7 @@ instance Eq EnvType where
   EnvInt == EnvInt = True
   EnvBool == EnvBool = True
   EnvStr == EnvStr = True
+  EnvVoid == EnvVoid = True
   (EnvFun ret1 args1) == (EnvFun ret2 args2) = and (zipWith (==) args1 args2) && (ret1 == ret2)
   _ == _ = False
 
@@ -94,6 +95,9 @@ showBnfcPos (Just (r, c)) = concat [
   ]
 showBnfcPos Nothing = "error while printing the exception position"
 
+showIdent :: Ident -> String
+showIdent (Ident s) = s
+
 type TypeCheckException = TypeCheckException' BNFC.Abs.BNFC'Position 
 data TypeCheckException' a =
   BadType a EnvType EnvType
@@ -105,16 +109,17 @@ data TypeCheckException' a =
   | UnexpectedReturn a
   | NoMainException
   | WrongMainDefinitionException a
+  | DuplicateFunctionArgumentsException a
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
     "Type mismatch at ", showBnfcPos pos,
     ", expeceted type ", show exp,
-    " but got: ", show act
+    " but got type ", show act
     ]
   show (UnexpectedToken pos id) = concat [
     "Unexpected token at ", showBnfcPos pos,
-    ", namely ", show id
+    ", namely ", showIdent id
     ]
   show (NotAFunction pos act) = concat [
     "Expected a function at ", showBnfcPos pos,
@@ -135,8 +140,10 @@ instance Show TypeCheckException where
     "No main function found"
   show (WrongMainDefinitionException pos) = concat [
     "Wrong main definition exception at ", showBnfcPos pos,
-    "Expected return type of void and no arguments"
+    ", expected return type of void and no arguments"
     ]
+  show (DuplicateFunctionArgumentsException pos) =
+    "Two arguments are named the same at " ++ showBnfcPos pos
 
 ---- CheckerMonad ----
 type CheckerMonad = StateT Env (ExceptT TypeCheckException Identity) ()

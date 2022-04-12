@@ -9,7 +9,7 @@ import Typecheck.TypeCheckerData
 import Typecheck.TypeCheckerHelper
 import Syntax.AbsTempest
 import BNFC.Abs (BNFC'Position)
-import Control.Monad as CM
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -30,7 +30,8 @@ checkFunction :: BNFC.Abs.BNFC'Position -> EnvType -> [Expr] -> GetterMonad
 checkFunction pos (EnvFun ret exTypes) args =
   do
     acTypes <- mapM getType args
-    if and (zipWith (==) exTypes acTypes) then
+    let comparedArgs = zipWith (==) exTypes acTypes
+    if and comparedArgs && (length comparedArgs == length exTypes) then
       return ret
     else
       throwError (BadArgumentTypes pos exTypes acTypes)
@@ -59,6 +60,7 @@ checkCondition b ex =
     unless b $
       throwError ex
 
+--Check if main exists and is zero argument void function
 checkMain :: Maybe Def -> CheckerMonad
 checkMain Nothing = throwError NoMainException
 checkMain (Just (FnDef pos rt _ args _)) = do
@@ -121,7 +123,7 @@ getType (ERel pos e1 _ e2) =
     evType1 <- getType e1
     evType2 <- getType e2
     compareTypes pos EnvInt evType1 evType2
-    return EnvInt
+    return EnvBool
 
 --Var and Function
 getType (EVar pos id) =
@@ -158,6 +160,8 @@ instance Checker Def where
 
   checkType (FnDef pos rt id args block) =
     do
+      unless (uniqueArgs args) $
+        throwError (DuplicateFunctionArgumentsException pos)
       env <- get
       put $ pute env id (funToEnvType rt args)
       newEnv <- get
