@@ -70,6 +70,7 @@ data TypeCheckException =
   | UnexpectedToken BNFC'Position Ident
   | NotAFunction BNFC'Position EnvType
   | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
+  | DuplicateDefinitionsException BNFC'Position
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -90,9 +91,14 @@ instance Show TypeCheckException where
     ", expected types ", show exp,
     ", but got types ", show act
     ]
+  show (DuplicateDefinitionsException pos) = 
+    "Two definitons are named the same at " ++ showBnfcPos pos
 
 ---- CheckerMonad ----
 type CheckerMonad = StateT Env (ExceptT TypeCheckException Identity) ()
+
+class Checker a where
+  checkType :: a -> CheckerMonad
 
 ---- GetterMonad ----
 type GetterMonad = ReaderT Env (ExceptT TypeCheckException Identity) EnvType

@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Typecheck.TypeChecker where
 
 import Prelude as P
@@ -11,7 +12,46 @@ import BNFC.Abs (BNFC'Position)
 import Control.Monad as CM
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 
+compareType :: BNFC'Position -> EnvType -> EnvType -> EmptyGetterMonad
+compareType pos et at =
+  do
+    when (at /= et) $
+      throwError (BadType pos et at)
+
+compareTypes :: BNFC'Position -> EnvType -> EnvType -> EnvType -> EmptyGetterMonad
+compareTypes pos et at1 at2 =
+  do
+    compareType pos et at1
+    compareType pos et at2
+
+checkFunction :: BNFC'Position -> EnvType -> [Expr BNFC'Position] -> GetterMonad
+checkFunction pos (EnvFun ret exTypes) args =
+  do
+    acTypes <- mapM getType args
+    if and (zipWith (==) exTypes acTypes) then
+      return ret
+    else
+      throwError (BadArgumentTypes pos exTypes acTypes)
+
+checkFunction pos t _ =
+  throwError (NotAFunction pos t)
+
+compareTypeExpr :: BNFC'Position -> EnvType -> Expr BNFC'Position -> EmptyGetterMonad
+compareTypeExpr pos et e =
+  do
+    at <- getType e
+    when (at /= et) $
+      throwError (BadType pos et at)
+
+runComparator :: BNFC'Position -> EnvType -> Expr BNFC'Position -> Env -> Either TypeCheckException ()
+runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
+
+checkResult :: Either TypeCheckException () -> CheckerMonad 
+checkResult et = case et of
+  Right _ -> return ()
+  Left ex -> throwError ex
 
 
 getType :: Expr BNFC'Position -> GetterMonad
@@ -86,28 +126,18 @@ getType (EApp pos id args) =
       Nothing -> throwError (UnexpectedToken pos id)
 
 
-compareType :: BNFC'Position -> EnvType -> EnvType -> EmptyGetterMonad
-compareType pos et at = 
-  do
-    CM.when (at /= et) $
-      throwError (BadType pos et at)
+instance Checker (Program BNFC'Position) where
+  checkType (PProgram pos defs) =
+    do
+      unless (uniqueDefs defs) $
+        throwError (DuplicateDefinitionsException pos)
+      mapM_ checkType defs
 
-compareTypes :: BNFC'Position -> EnvType -> EnvType -> EnvType -> EmptyGetterMonad
-compareTypes pos et at1 at2 = 
-  do
-    compareType pos et at1
-    compareType pos et at2
-
-checkFunction :: BNFC'Position -> EnvType -> [Expr BNFC'Position] -> GetterMonad
-checkFunction pos (EnvFun ret exTypes) args = 
-  do
-    acTypes <- mapM getType args
-    if and (zipWith (==) exTypes acTypes) then
-      return ret
-    else
-      throwError (BadArgumentTypes pos exTypes acTypes)
-
-checkFunction pos t _ =
-  throwError (NotAFunction pos t)
-
-
+instance Checker (Def BNFC'Position) where
+  checkType (GlDef pos t id e) =
+    do
+      env <- get
+      let ext = toEnvType t
+      let result = runComparator pos ext e env
+      checkResult result
+      put (pute env id ext)
