@@ -13,7 +13,8 @@ import Control.Monad.Identity (Identity)
 
 ---- EnvType ----
 
-data EnvType = EnvInt
+data EnvType = 
+  EnvInt
   | EnvBool
   | EnvStr
   | EnvVoid
@@ -31,7 +32,7 @@ instance Eq EnvType where
   EnvBool == EnvBool = True
   EnvStr == EnvStr = True
   EnvVoid == EnvVoid = True
-  (EnvFun ret1 args1) == (EnvFun ret2 args2) = and (zipWith (==) args1 args2) && (ret1 == ret2)
+  (EnvFun ret1 args1) == (EnvFun ret2 args2) = (length args1 == length args2) && and (zipWith (==) args1 args2) && (ret1 == ret2)
   _ == _ = False
 
 toEnvType :: Type -> EnvType
@@ -88,16 +89,6 @@ initEnv = Env (M.fromList [
 
 ---- Exception ----
 
-showBnfcPos :: BNFC.Abs.BNFC'Position -> String
-showBnfcPos (Just (r, c)) = concat [
-  "line ", show r,
-  ", position ", show c
-  ]
-showBnfcPos Nothing = "error while printing the exception position"
-
-showIdent :: Ident -> String
-showIdent (Ident s) = s
-
 type TypeCheckException = TypeCheckException' BNFC.Abs.BNFC'Position 
 data TypeCheckException' a =
   BadType a EnvType EnvType
@@ -144,6 +135,16 @@ instance Show TypeCheckException where
     ]
   show (DuplicateFunctionArgumentsException pos) =
     "Two arguments are named the same at " ++ showBnfcPos pos
+
+showBnfcPos :: BNFC.Abs.BNFC'Position -> String
+showBnfcPos (Just (r, c)) = concat [
+  "line ", show r,
+  ", position ", show c
+  ]
+showBnfcPos Nothing = "error while printing the exception position"
+
+showIdent :: Ident -> String
+showIdent (Ident s) = s
 
 ---- CheckerMonad ----
 type CheckerMonad = StateT Env (ExceptT TypeCheckException Identity) ()
