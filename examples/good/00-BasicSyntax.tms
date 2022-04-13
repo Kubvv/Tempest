@@ -5,38 +5,38 @@ string z = "print me!";
 //This is someFun();
 int someFun(int byValue, int @byRef) {
 
-    int someNestedFun() {
-        return y;
-    }
+  int someNestedFun() {
+      return y;
+  }
 
-    if (byValue > byRef && (true || false)) {
-        byValue = byValue % 2;
-        return byValue + 42;
-    } else {
-        byRef++;
-    }
+  if (byValue > byRef && (true || false)) {
+      byValue = byValue % 2;
+      return byValue + 42;
+  } else {
+      byRef++;
+  }
 
-    if (byRef % 4 == 1) {
-        return 0;
-    }
+  if (byRef % 4 == 1) {
+      return 0;
+  }
 
-    return byValue + someNestedFun();
+  return byValue + someNestedFun();
 }
 
 /* And this is main */
 void main() {
 
-    int byvalue = 3;
-    int byref = 5;
-    int res = someFun(byvalue, byref);
+  int byvalue = 3;
+  int byref = 5;
+  int res = someFun(byvalue, byref);
 
-    while (res > 0) {
-        x = x + y;
-        res--;
-    }
+  while (res > 0) {
+      x = x + y;
+      res--;
+  }
 
-    printString(z);
-    printInt(3);
-    printBool(true);
-    return;
+  printString(z);
+  printInt(3);
+  printBool(true);
+  return;
 }

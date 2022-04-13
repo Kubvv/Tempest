@@ -1,0 +1,12 @@
+int fun(int x, boolean y, string z) {
+  return x;
+}
+
+boolean fun2(int x, boolean y, string z) {
+  return y;
+}
+
+void main() {
+  int l = x(5, 10, 15);
+  return;
+}

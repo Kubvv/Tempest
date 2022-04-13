@@ -4,10 +4,10 @@ string z = "print me!";
 
 void main() {
 
-    if (t) {
-        x = x + 1;
-        printString(z);
-    }
+  if (t) {
+    x = x + 1;
+    printString(z);
+  }
 
-    return;
+  return;
 }

@@ -1,22 +1,22 @@
 void functionA(int i) {
-    i++;
-    return;
+  i++;
+  return;
 }
 
 void functionB(int @i) {
-    i++;
-    return;
+  i++;
+  return;
 }
 
 void main() {
     
-    int i = 1;
-    functionA(i);
-    printInt(i);
-    functionB(i);
-    if (i == 2) {
-        printString("Udało się!");
-    }
+  int i = 1;
+  functionA(i);
+  printInt(i);
+  functionB(i);
+  if (i == 2) {
+    printString("Udało się!");
+  }
 
-    return;
+  return;
 }

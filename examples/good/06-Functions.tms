@@ -1,19 +1,19 @@
 boolean functionA(boolean b) {
-    return !b;
+  return !b;
 }
 
 void functionB(int i) {
-    i++;
-    return;
+  i++;
+  return;
 }
 
 void main() {
 
-    int z = 0;
-    if (functionA(false)) {
-        functionB(z);
-        printInt(z);
-    }
+  int z = 0;
+  if (functionA(false)) {
+    functionB(z);
+    printInt(z);
+  }
 
-    return;
+  return;
 }

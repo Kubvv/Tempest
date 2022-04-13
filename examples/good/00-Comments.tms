@@ -3,5 +3,5 @@
 /* I'm also a
 comment! */
 void main() {
-    return;
+  return;
 }

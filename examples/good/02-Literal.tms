@@ -1,5 +1,6 @@
 void main() {
-    string a = "some string";
-    string b = "another one";
-    return;
+    
+  string a = "some string";
+  string b = "another one";
+  return;
 }

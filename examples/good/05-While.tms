@@ -1,9 +1,9 @@
 void main() {
-    int i = 20;
-    int x = 0;
-    while (i > 10) {
-        x = x + i;
-        i--;
-    }
-    return;
+  int i = 20;
+  int x = 0;
+  while (i > 10) {
+    x = x + i;
+    i--;
+  }
+  return;
 }

@@ -1,13 +1,13 @@
 void main() {
-    int i = 20;
-    if (i >= 20) {
-        printString("i is big");
-    } else {
-        printString("i is not big");
-    }
+  int i = 20;
+  if (i >= 20) {
+      printString("i is big");
+  } else {
+      printString("i is not big");
+  }
 
-    if (true && false) {
-        return;
-    }
+  if (true && false) {
     return;
+  }
+  return;
 }
