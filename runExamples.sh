@@ -15,9 +15,9 @@ for example in $examples_path/good/*.tms; do
 
   if [[ $? -eq 0 ]]; then
     ((passed_good=passed_good+1))
-    echo -e "\n\n-- OK --\n"
+    echo -e "\n\n< OK >\n\n"
   else
-    echo -e "\n\n-- NOT OK --\n"
+    echo -e "\n\n< NOT OK >\n\n"
   fi
   ((all_good=all_good+1))
 done
@@ -34,9 +34,9 @@ for example in $examples_path/bad/*.tms; do
 
   if [[ $? -eq 1 ]]; then
     ((passed_bad=passed_bad+1))
-    echo -e "\n\n-- OK --\n"
+    echo -e "\n\n< OK >\n\n"
   else
-    echo -e "\n\n-- NOT OK --\n"
+    echo -e "\n\n< NOT OK >\n\n"
   fi
   ((all_bad=all_bad+1))
 done
