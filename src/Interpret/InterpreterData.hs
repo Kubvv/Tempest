@@ -7,9 +7,8 @@ import Data.Maybe
 
 import Syntax.AbsTempest
 import BNFC.Abs (BNFC'Position)
-import           Control.Monad.Except
-import           Control.Monad.State
-
+import Control.Monad.Except
+import Control.Monad.State
 
 
 ---- Exception ----
@@ -36,9 +35,6 @@ showBnfcPos (Just (r, c)) = concat [
   ", position ", show c
   ]
 showBnfcPos Nothing = "error while printing the exception position"
-
-showIdent :: Ident -> String
-showIdent (Ident s) = s
 
 ---- Interpreter's data ----
 
@@ -76,17 +72,17 @@ putVal = M.insert
 newloc :: Mem -> (Loc, Mem)
 newloc (State env str fl) = (fl, State env str (fl+1))
 
-get :: Ident -> Mem -> Value
-get id (State env str _) = getVal (getLoc id env) str
+getS :: Ident -> Mem -> Value
+getS id (State env str _) = getVal (getLoc id env) str
 
-put :: Ident -> Value -> Mem -> Mem
-put id x (State env str fl) = State newEnv newStore (fl+1)
+putS :: Ident -> Value -> Mem -> Mem
+putS id x (State env str fl) = State newEnv newStore (fl+1)
   where
     newEnv = putLoc id fl env
     newStore = putVal fl x str
 
-update :: Ident -> Value -> Mem -> Mem
-update id x (State env str fl) = State env newStore fl
+updateS :: Ident -> Value -> Mem -> Mem
+updateS id x (State env str fl) = State env newStore fl
   where
     l = getLoc id env
     newStore = putVal l x str
@@ -96,16 +92,31 @@ update id x (State env str fl) = State env newStore fl
 data Value =
   VInt Integer
   | VBool Bool
-  | VString String
+  | VStr String
   | VFun [Arg] Block Env
   | VNothing
 
 instance Show Value where
   show (VInt x) = show x
   show (VBool x) = show x
-  show (VString x) = x
+  show (VStr x) = x
   show _ = ""
 
+extractInt :: Value -> Maybe Integer
+extractInt (VInt i) = Just i
+extractInt _ = Nothing
+
+extractBool :: Value -> Maybe Bool
+extractBool (VBool b) = Just b
+extractBool _ = Nothing
+
+extractString :: Value -> Maybe String
+extractString (VStr s) = Just s
+extractString _ = Nothing
+
+extractFun :: Value -> Maybe ([Arg], Block, Env)
+extractFun (VFun args block env) = Just (args, block, env)
+extractFun _ = Nothing
 
 ---- InterpreterMonad ----
 
