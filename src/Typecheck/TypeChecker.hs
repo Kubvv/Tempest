@@ -70,11 +70,28 @@ checkMain (Just _) = return ()
 
 
 getType :: Expr -> GetterMonad
+
+--Vars
+getType (EVar pos id) =
+  do
+    env <- ask
+    case gete env id of
+      Just t -> return t
+      Nothing -> throwError (UnexpectedToken pos id)
+
 --Trivial
 getType (ELitFalse _) = return EnvBool
 getType (ELitTrue _) = return EnvBool
 getType (ELitInt _ _) = return EnvInt
 getType (EString _ _) = return EnvStr
+
+--Function application
+getType (EApp pos id args) =
+  do
+    env <- ask
+    case gete env id of
+      Just t -> checkFunction pos t args
+      Nothing -> throwError (UnexpectedToken pos id)
 
 --Expect bool
 getType (ENot pos e) =
@@ -125,23 +142,9 @@ getType (ERel pos e1 _ e2) =
     compareTypes pos EnvInt evType1 evType2
     return EnvBool
 
---Var and Function
-getType (EVar pos id) =
-  do
-    env <- ask
-    case gete env id of
-      Just t -> return t
-      Nothing -> throwError (UnexpectedToken pos id)
-
-getType (EApp pos id args) =
-  do
-    env <- ask
-    case gete env id of
-      Just t -> checkFunction pos t args
-      Nothing -> throwError (UnexpectedToken pos id)
-
 
 instance Checker Program where
+
   checkType (PProgram pos defs) =
     do
       unless (uniqueDefs defs) $
@@ -150,6 +153,8 @@ instance Checker Program where
       checkMain $ findByIdent defs
 
 instance Checker Def where
+
+  --Variable definition
   checkType (GlDef pos t id e) =
     do
       env <- get
@@ -158,6 +163,7 @@ instance Checker Def where
       checkResult result
       put (pute env id ext)
 
+  --Function definition
   checkType (FnDef pos rt id args block) =
     do
       unless (uniqueArgs args) $
@@ -174,9 +180,11 @@ instance Checker Def where
       put newEnv
 
 instance Checker Block where
+
   checkType (BBlock pos stmts) = mapM_ checkType stmts
 
 instance Checker Stmt where
+
   --Empty statement
   checkType (SEmpty _) = return ()
 
