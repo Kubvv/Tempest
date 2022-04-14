@@ -63,8 +63,8 @@ data Expr' a
     | ELitInt a Integer
     | ELitTrue a
     | ELitFalse a
-    | EApp a Ident [Expr' a]
     | EString a String
+    | EApp a Ident [Expr' a]
     | ENeg a (Expr' a)
     | ENot a (Expr' a)
     | EMul a (Expr' a) (MulOp' a) (Expr' a)
