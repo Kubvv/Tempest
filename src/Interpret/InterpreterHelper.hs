@@ -58,4 +58,35 @@ getCompOperator (ONe _) = (/=)
 
 isDiv :: MulOp -> Bool
 isDiv (ODiv _) = True
-isDiv _ = False 
+isDiv _ = False
+
+getArgLoc :: Env -> Expr -> Maybe Loc
+getArgLoc env (EVar _ id) = Just (getLoc id env)
+getArgLoc _ _ = Nothing
+
+putArgs :: [Value] -> [Maybe Loc] -> [Arg] -> InterpreterMonad 
+putArgs [] _ _ = return VNothing
+putArgs (v:vs) (l:ls) (a:as) = 
+  do
+    putArg v l a
+    putArgs vs ls as
+putArgs _ _ _ = return VNothing 
+
+putArg :: Value -> Maybe Loc -> Arg -> InterpreterMonad 
+
+putArg _ Nothing (RArg pos _ id) =
+  throwError $ ReferenceException pos id
+
+putArg _ (Just l) (RArg _ _ id) =
+  do
+    mem <- get
+    let envi = env mem
+    let newEnvi = putLoc id l envi
+    put $ putEnv newEnvi mem
+    return VNothing
+
+putArg v _ (VArg _ _ id) =
+  do
+    mem <- get
+    put $ putS id v mem
+    return VNothing 

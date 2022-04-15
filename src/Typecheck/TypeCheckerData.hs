@@ -153,5 +153,4 @@ class Checker a where
   checkType :: a -> CheckerMonad
 
 ---- GetterMonad ----
-type GetterMonad = ReaderT Env (ExceptT TypeCheckException Identity) EnvType
-type EmptyGetterMonad = ReaderT Env (ExceptT TypeCheckException Identity) ()
+type GetterMonad = ReaderT Env (ExceptT TypeCheckException Identity)

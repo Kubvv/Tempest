@@ -16,14 +16,16 @@ import Control.Monad.State
 type InterpretException = InterpretException' BNFC.Abs.BNFC'Position
 data InterpretException' a =
   ArithmeticException a
-  | ReferenceException a
+  | ReferenceException a Ident
   | NotImplementedException String
 
 instance Show InterpretException where
   show (ArithmeticException pos) =
     "Division by zero at " ++ showBnfcPos pos
-  show (ReferenceException pos) =
-    "Argument passed by reference is not a variable at " ++ showBnfcPos pos
+  show (ReferenceException pos id) = concat [
+    "Argument passed by reference denoted as ", showIdent id,
+    "is not a variable at ", showBnfcPos pos
+    ]
   show (NotImplementedException id) = concat [
     "Function ", id,
     " is declared as default, but it doesn't have a default implementation"
@@ -36,6 +38,9 @@ showBnfcPos (Just (r, c)) = concat [
   ]
 showBnfcPos Nothing = "error while printing the exception position"
 
+showIdent :: Ident -> String
+showIdent (Ident s) = s
+
 ---- Interpreter's data ----
 
 type Loc = Integer
@@ -45,17 +50,20 @@ type Store = M.Map Loc Value
 data Mem = State {
   env :: Env,
   store :: Store,
-  freeloc :: Integer
+  freeloc :: Integer,
+  returnV :: Value
 }
 
 emptyState = State {
   env = M.empty,
   store = M.empty,
-  freeloc = 0
+  freeloc = 0,
+  returnV = VNothing
 }
 
+-- State and reader handling
 putEnv :: Env -> Mem -> Mem
-putEnv env (State _ str fl) = State env str fl
+putEnv env (State _ str fl rv) = State env str fl rv
 
 getLoc :: Ident -> Env -> Loc
 getLoc id env = fromJust $ M.lookup id env
@@ -70,30 +78,42 @@ putVal :: Loc -> Value -> Store -> Store
 putVal = M.insert
 
 newloc :: Mem -> (Loc, Mem)
-newloc (State env str fl) = (fl, State env str (fl+1))
+newloc (State env str fl rv) = (fl, State env str (fl+1) rv)
 
 getS :: Ident -> Mem -> Value
-getS id (State env str _) = getVal (getLoc id env) str
+getS id (State env str _ _) = getVal (getLoc id env) str
 
 putS :: Ident -> Value -> Mem -> Mem
-putS id x (State env str fl) = State newEnv newStore (fl+1)
+putS id x (State env str fl rv) = State newEnv newStore (fl+1) rv
   where
     newEnv = putLoc id fl env
     newStore = putVal fl x str
 
 updateS :: Ident -> Value -> Mem -> Mem
-updateS id x (State env str fl) = State env newStore fl
+updateS id x (State env str fl rv) = State env newStore fl rv
   where
     l = getLoc id env
     newStore = putVal l x str
 
+-- Return handling
+putReturn :: Value -> Mem -> Mem
+putReturn v (State env str fl _) = State env str fl v
+
+getReturn :: Mem -> Value
+getReturn (State _ _ _ rv) = rv
+
+isReturn :: Mem -> Bool
+isReturn (State _ _ _ VNothing) = False
+isReturn _ = True
+
 ---- Value ----
 
-data Value =
+data Value = --TODO wymyśleć lepszą nazwe
   VInt Integer
   | VBool Bool
   | VStr String
   | VFun [Arg] Block Env
+  | VVoid
   | VNothing
 
 instance Show Value where
@@ -117,6 +137,18 @@ extractString _ = Nothing
 extractFun :: Value -> Maybe ([Arg], Block, Env)
 extractFun (VFun args block env) = Just (args, block, env)
 extractFun _ = Nothing
+
+getFunEnv :: Value -> Maybe Env
+getFunEnv (VFun _ _ env) = Just env
+getFunEnv _ = Nothing
+
+getFunBlock :: Value -> Maybe Block
+getFunBlock (VFun _ b _) = Just b
+getFunBlock _ = Nothing
+
+getFunArgs :: Value -> Maybe [Arg]
+getFunArgs (VFun args _ _) = Just args
+getFunArgs _ = Nothing
 
 ---- InterpreterMonad ----
 

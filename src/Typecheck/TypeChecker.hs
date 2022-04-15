@@ -14,19 +14,19 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 
-compareType :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EmptyGetterMonad
+compareType :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> GetterMonad ()
 compareType pos et at =
   do
     when (at /= et) $
       throwError (BadType pos et at)
 
-compareTypes :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EnvType -> EmptyGetterMonad
+compareTypes :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EnvType -> GetterMonad ()
 compareTypes pos et at1 at2 =
   do
     compareType pos et at1
     compareType pos et at2
 
-checkFunction :: BNFC.Abs.BNFC'Position -> EnvType -> [Expr] -> GetterMonad
+checkFunction :: BNFC.Abs.BNFC'Position -> EnvType -> [Expr] -> GetterMonad EnvType 
 checkFunction pos (EnvFun ret exTypes) args =
   do
     acTypes <- mapM getType args
@@ -39,7 +39,7 @@ checkFunction pos (EnvFun ret exTypes) args =
 checkFunction pos t _ =
   throwError (NotAFunction pos t)
 
-compareTypeExpr :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> EmptyGetterMonad
+compareTypeExpr :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> GetterMonad ()
 compareTypeExpr pos et e =
   do
     at <- getType e
@@ -69,7 +69,7 @@ checkMain (Just (FnDef pos rt _ args _)) = do
 checkMain (Just _) = return ()
 
 
-getType :: Expr -> GetterMonad
+getType :: Expr -> GetterMonad EnvType 
 
 --Vars
 getType (EVar pos id) =

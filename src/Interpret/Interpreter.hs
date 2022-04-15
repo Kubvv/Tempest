@@ -20,17 +20,17 @@ instance Interpreter Def where
   --Variable definition
   interpret (GlDef _ _ id e) =
     do
-      s <- get 
+      mem <- get 
       v <- interpret e
-      put $ putS id v s
+      put $ putS id v mem
       return VNothing
 
   --Function definition
   interpret (FnDef _ _ id args block) =
     do
-      s <- get
-      let v = VFun args block (env s)
-      put $ putS id v s
+      mem <- get
+      let v = VFun args block (env mem)
+      put $ putS id v mem
       return VNothing 
 
 instance Interpreter Block where
@@ -56,7 +56,22 @@ instance Interpreter Expr where
   interpret (EString _ str) = return $ VStr str
 
   --Function application
-  interpret (EApp _ id args) = return $ VInt 0
+  interpret (EApp _ id args) = 
+    do
+      mem <- get
+      let envi = env mem
+      vs <- mapM interpret args
+      let locs = map (getArgLoc envi) args
+      let fun = getS id mem
+      put $ putEnv (fromJust $ getFunEnv fun) mem
+      put $ putS id fun mem
+      putArgs vs locs (fromJust $ getFunArgs fun)
+      interpret $ fromJust $ getFunBlock fun
+      newMem <- get
+      let result = returnV newMem
+      put $ putEnv envi newMem
+      put $ putReturn VNothing newMem
+      return result
 
   --Negation and Not
   interpret (ENeg _ e) =
