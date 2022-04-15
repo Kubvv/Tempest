@@ -49,7 +49,8 @@ instance Interpreter Stmt where
       mem <- get
       let envi = env mem
       interpret b
-      put $ putEnv envi mem
+      newMem <- get
+      put $ putEnv envi newMem
       return RNothing
 
   interpret (SInit _ def) = interpretIfNotRet $
@@ -99,7 +100,8 @@ instance Interpreter Stmt where
         interpret block
       else
         return RNothing
-      put $ putEnv envi mem
+      newMem <- get
+      put $ putEnv envi newMem
       return RNothing
 
   interpret (SCondElse _ cond block1 block2) = interpretIfNotRet $
@@ -111,7 +113,8 @@ instance Interpreter Stmt where
         interpret block1
       else
         interpret block2
-      put $ putEnv envi mem
+      newMem <- get
+      put $ putEnv envi newMem
       return RNothing
 
   interpret wh@(SWhile _ cond block) = interpretIfNotRet $
@@ -124,7 +127,8 @@ instance Interpreter Stmt where
       interpret wh
     else
       return RNothing
-    put $ putEnv envi mem
+    newMem <- get
+    put $ putEnv envi newMem
     return RNothing
 
   interpret (SExp _ e) = interpretIfNotRet $
@@ -224,15 +228,15 @@ interpretFromEnvironment id args =
     rs <- mapM interpret args
     let locs = map (getArgLoc envi) args
     let fun = getS id mem
-    let (args, block, env) = fromJust $ extractFun fun
-    put $ putEnv env mem
-    put $ putS id fun mem
-    putArgs rs locs args
-    interpret block
+    let (argsF, blockF, envF) = fromJust $ extractFun fun
+    modify $ putEnv envF
+    modify $ putS id fun
+    putArgs rs locs argsF
+    interpret blockF
     newMem <- get
     let result = returnR newMem
-    put $ putEnv envi newMem
-    put $ putReturn RNothing newMem
+    modify $ putEnv envi
+    modify $ putReturn RNothing
     return result
 
 runInterpreter :: Program -> IO (Either InterpretException Result)

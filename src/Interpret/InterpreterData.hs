@@ -63,7 +63,7 @@ emptyState = State {
 
 -- State and reader handling
 putEnv :: Env -> Mem -> Mem
-putEnv env (State _ str fl rv) = State env str fl rv
+putEnv envi (State _ str fl rv) = State envi str fl rv
 
 getLoc :: Ident -> Env -> Loc
 getLoc id env = fromJust $ M.lookup id env
@@ -108,7 +108,7 @@ isReturn _ = True
 
 ---- Result ----
 
-data Result = --TODO wymyśleć lepszą nazwe
+data Result =
   RInt Integer
   | RBool Bool
   | RStr String
