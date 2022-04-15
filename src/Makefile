@@ -9,5 +9,11 @@ interpreter: Main.hs ${typecheckSources} ${interpretSources} ${syntaxSources}
 
 clean:
 	rm -f *.hi
+	rm -f Syntax/*.hi
+	rm -f Typecheck/*.hi
+	rm -f Interpret/*.hi
 	rm -f *.o
+	rm -f Syntax/*.o
+	rm -f Typecheck/*.o
+	rm -f Interpret/*.o
 	rm -f interpreter
