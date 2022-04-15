@@ -5,7 +5,6 @@ module Typecheck.TypeCheckerData where
 import Prelude as P
 import Data.Map as M
 import Syntax.AbsTempest
-import BNFC.Abs (BNFC'Position)
 import Control.Monad.Except (ExceptT)
 import Control.Monad.State (StateT)
 import Control.Monad.Reader (ReaderT)
@@ -91,17 +90,17 @@ defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt]),
 ---- Exception ----
 
 data TypeCheckException =
-  BadType BNFC.Abs.BNFC'Position EnvType EnvType
-  | UnexpectedToken BNFC.Abs.BNFC'Position Ident
-  | NotAFunction BNFC.Abs.BNFC'Position EnvType
-  | BadArgumentTypes BNFC.Abs.BNFC'Position [EnvType] [EnvType]
-  | DuplicateDefinitionsException BNFC.Abs.BNFC'Position
-  | NoReturnException BNFC.Abs.BNFC'Position
-  | UnexpectedReturn BNFC.Abs.BNFC'Position
+  BadType BNFC'Position EnvType EnvType
+  | UnexpectedToken BNFC'Position Ident
+  | NotAFunction BNFC'Position EnvType
+  | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
+  | DuplicateDefinitionsException BNFC'Position
+  | NoReturnException BNFC'Position
+  | UnexpectedReturn BNFC'Position
   | NoMainException
-  | WrongMainDefinitionException BNFC.Abs.BNFC'Position
-  | DuplicateFunctionArgumentsException BNFC.Abs.BNFC'Position
-  | DefaultOverrideException BNFC.Abs.BNFC'Position
+  | WrongMainDefinitionException BNFC'Position
+  | DuplicateFunctionArgumentsException BNFC'Position
+  | DefaultOverrideException BNFC'Position
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -139,7 +138,7 @@ instance Show TypeCheckException where
   show (DefaultOverrideException pos) =
     "Default function overriden at " ++ showBnfcPos pos 
 
-showBnfcPos :: BNFC.Abs.BNFC'Position -> String
+showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
   "line ", show r,
   ", position ", show c

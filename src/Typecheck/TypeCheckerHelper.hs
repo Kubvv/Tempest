@@ -5,7 +5,6 @@ import Data.Map as M
 
 import Typecheck.TypeCheckerData
 import Syntax.AbsTempest
-import BNFC.Abs (BNFC'Position)
 
 nubfil :: Eq a => [a] -> [a]
 nubfil [] = []

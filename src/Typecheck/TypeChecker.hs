@@ -8,25 +8,24 @@ import Data.Map as M
 import Typecheck.TypeCheckerData
 import Typecheck.TypeCheckerHelper
 import Syntax.AbsTempest
-import BNFC.Abs (BNFC'Position)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 
-compareType :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> GetterMonad ()
+compareType :: BNFC'Position -> EnvType -> EnvType -> GetterMonad ()
 compareType pos et at =
   do
     when (at /= et) $
       throwError (BadType pos et at)
 
-compareTypes :: BNFC.Abs.BNFC'Position -> EnvType -> EnvType -> EnvType -> GetterMonad ()
+compareTypes :: BNFC'Position -> EnvType -> EnvType -> EnvType -> GetterMonad ()
 compareTypes pos et at1 at2 =
   do
     compareType pos et at1
     compareType pos et at2
 
-checkFunction :: BNFC.Abs.BNFC'Position -> EnvType -> [Expr] -> GetterMonad EnvType 
+checkFunction :: BNFC'Position -> EnvType -> [Expr] -> GetterMonad EnvType 
 checkFunction pos (EnvFun ret exTypes) args =
   do
     acTypes <- mapM getType args
@@ -39,14 +38,14 @@ checkFunction pos (EnvFun ret exTypes) args =
 checkFunction pos t _ =
   throwError (NotAFunction pos t)
 
-compareTypeExpr :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> GetterMonad ()
+compareTypeExpr :: BNFC'Position -> EnvType -> Expr -> GetterMonad ()
 compareTypeExpr pos et e =
   do
     at <- getType e
     when (at /= et) $
       throwError (BadType pos et at)
 
-runComparator :: BNFC.Abs.BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
+runComparator :: BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
 runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
 
 checkResult :: Either TypeCheckException () -> CheckerMonad
