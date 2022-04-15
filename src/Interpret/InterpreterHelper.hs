@@ -89,4 +89,13 @@ putArg v _ (VArg _ _ id) =
   do
     mem <- get
     put $ putS id v mem
+    return VNothing
+
+interpretIfNotRet :: InterpreterMonad -> InterpreterMonad
+interpretIfNotRet inter = do
+  mem <- get
+  let isRet = isReturn mem
+  if isRet then
+    inter
+  else
     return VNothing 

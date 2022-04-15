@@ -138,6 +138,14 @@ extractFun :: Value -> Maybe ([Arg], Block, Env)
 extractFun (VFun args block env) = Just (args, block, env)
 extractFun _ = Nothing
 
+incrValue :: Value -> Maybe Value
+incrValue (VInt i) = Just $ VInt $ i+1
+incrValue _ = Nothing 
+
+decrValue :: Value -> Maybe Value
+decrValue (VInt i) = Just $ VInt $ i-1
+decrValue _ = Nothing 
+
 getFunEnv :: Value -> Maybe Env
 getFunEnv (VFun _ _ env) = Just env
 getFunEnv _ = Nothing

@@ -20,7 +20,7 @@ instance Interpreter Def where
   --Variable definition
   interpret (GlDef _ _ id e) =
     do
-      mem <- get 
+      mem <- get
       v <- interpret e
       put $ putS id v mem
       return VNothing
@@ -31,7 +31,7 @@ instance Interpreter Def where
       mem <- get
       let v = VFun args block (env mem)
       put $ putS id v mem
-      return VNothing 
+      return VNothing
 
 instance Interpreter Block where
 
@@ -42,10 +42,100 @@ instance Interpreter Block where
 
 instance Interpreter Stmt where
 
+  interpret (SEmpty _) = return VNothing
+
+  interpret (SBStmt _ b) = interpretIfNotRet $
+    do
+      mem <- get
+      let envi = env mem
+      interpret b
+      put $ putEnv envi mem
+      return VNothing
+
+  interpret (SInit _ def) = interpretIfNotRet $
+    do
+      interpret def
+
+  interpret (SAss _ id e) = interpretIfNotRet $
+    do
+      mem <- get
+      v <- interpret e
+      put $ updateS id v mem
+      return VNothing
+
+  interpret (SIncr _ id) = interpretIfNotRet $
+    do
+      mem <- get
+      let v = fromJust $ incrValue $ getS id mem
+      put $ updateS id v mem
+      return VNothing
+
+  interpret (SDecr _ id) = interpretIfNotRet $
+    do
+      mem <- get
+      let v = fromJust $ decrValue $ getS id mem
+      put $ updateS id v mem
+      return VNothing
+
+  interpret (SRet _ e) = interpretIfNotRet $
+    do
+      mem <- get
+      v <- interpret e
+      put $ putReturn v mem
+      return VNothing
+
+  interpret (SVRet _) = interpretIfNotRet $
+    do
+      mem <- get
+      put $ putReturn VVoid mem
+      return VNothing
+
+  interpret (SCond _ cond block) = interpretIfNotRet $
+    do
+      mem <- get
+      b <- interpret cond
+      let envi = env mem
+      if fromJust $ extractBool b then
+        interpret block
+      else
+        return VNothing
+      put $ putEnv envi mem
+      return VNothing
+
+  interpret (SCondElse _ cond block1 block2) = interpretIfNotRet $
+    do
+      mem <- get
+      b <- interpret cond
+      let envi = env mem
+      if fromJust $ extractBool b then
+        interpret block1
+      else
+        interpret block2
+      put $ putEnv envi mem
+      return VNothing
+
+  interpret wh@(SWhile _ cond block) = interpretIfNotRet $
+    do
+    mem <- get
+    b <- interpret cond
+    let envi = env mem
+    if fromJust $ extractBool b then
+      interpret block >>
+      interpret wh
+    else
+      return VNothing
+    put $ putEnv envi mem
+    return VNothing
+
+  interpret (SExp _ e) = interpretIfNotRet $
+    do
+      interpret e
+
+
 instance Interpreter Expr where
 
   --Vars
-  interpret (EVar _ id) = 
+  interpret (EVar _ id) =
     do
       gets (getS id)
 
@@ -56,7 +146,7 @@ instance Interpreter Expr where
   interpret (EString _ str) = return $ VStr str
 
   --Function application
-  interpret (EApp _ id args) = 
+  interpret (EApp _ id args) =
     do
       mem <- get
       let envi = env mem
