@@ -7,6 +7,7 @@ void main() {
   if (t) {
     x = x + 1;
     printString(z);
+    printInt(x);
   }
 
   return;

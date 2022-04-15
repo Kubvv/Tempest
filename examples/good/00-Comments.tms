@@ -2,6 +2,4 @@
 
 /* I'm also a
 comment! */
-void main() {
-  return;
-}
+void main() { return; }

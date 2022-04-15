@@ -2,5 +2,9 @@ void main() {
     
   string a = "some string";
   string b = "another one";
+
+  printString(a);
+  printString(b);
+
   return;
 }

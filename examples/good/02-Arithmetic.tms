@@ -1,10 +1,20 @@
 void main () {
+  
   int a = 5 + 3;
   int b = 4 - 2;
   int c = 4 * 8;
   int d = 11 / 2;
   int e = 13 % 3;
 
+  printInt(a);
+  printInt(b);
+  printInt(c);
+  printInt(d);
+  printInt(e);
+
   int advancedArith = (8 * 3 / (11 - 7) + 4) % 2;
+
+  printInt(advancedArith);
+
   return;
 }

@@ -1,7 +1,14 @@
-void main () { 
+void main () {
+
   boolean a = true && false; 
   boolean b = true || false;
 
+  printBool(a);
+  printBool(b);
+
   boolean advancedLogical = (true || false) && (false || false);
+
+  printBool(advancedLogical);
+
   return;
 }
