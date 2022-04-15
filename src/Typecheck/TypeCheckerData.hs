@@ -81,26 +81,27 @@ putir :: Env -> Bool -> Env
 putir (Env tm rt is) = Env tm rt
 
 initEnv :: Env
-initEnv = Env (M.fromList [
-  (Ident "printInt", EnvFun EnvVoid [EnvInt]),
+initEnv = Env (M.fromList defaults) Nothing False
+
+defaults :: [(Ident, EnvType)]
+defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt]),
   (Ident "printBool", EnvFun EnvVoid [EnvBool]),
-  (Ident "printString", EnvFun EnvVoid [EnvStr])
-  ]) Nothing False
+  (Ident "printString", EnvFun EnvVoid [EnvStr])]
 
 ---- Exception ----
 
-type TypeCheckException = TypeCheckException' BNFC.Abs.BNFC'Position 
-data TypeCheckException' a =
-  BadType a EnvType EnvType
-  | UnexpectedToken a Ident
-  | NotAFunction a EnvType
-  | BadArgumentTypes a [EnvType] [EnvType]
-  | DuplicateDefinitionsException a
-  | NoReturnException a
-  | UnexpectedReturn a
+data TypeCheckException =
+  BadType BNFC.Abs.BNFC'Position EnvType EnvType
+  | UnexpectedToken BNFC.Abs.BNFC'Position Ident
+  | NotAFunction BNFC.Abs.BNFC'Position EnvType
+  | BadArgumentTypes BNFC.Abs.BNFC'Position [EnvType] [EnvType]
+  | DuplicateDefinitionsException BNFC.Abs.BNFC'Position
+  | NoReturnException BNFC.Abs.BNFC'Position
+  | UnexpectedReturn BNFC.Abs.BNFC'Position
   | NoMainException
-  | WrongMainDefinitionException a
-  | DuplicateFunctionArgumentsException a
+  | WrongMainDefinitionException BNFC.Abs.BNFC'Position
+  | DuplicateFunctionArgumentsException BNFC.Abs.BNFC'Position
+  | DefaultOverrideException BNFC.Abs.BNFC'Position
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -135,6 +136,8 @@ instance Show TypeCheckException where
     ]
   show (DuplicateFunctionArgumentsException pos) =
     "Two arguments are named the same at " ++ showBnfcPos pos
+  show (DefaultOverrideException pos) =
+    "Default function overriden at " ++ showBnfcPos pos 
 
 showBnfcPos :: BNFC.Abs.BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [

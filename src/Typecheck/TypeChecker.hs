@@ -60,7 +60,7 @@ checkCondition b ex =
     unless b $
       throwError ex
 
---Check if main exists and is zero argument void function
+--Check if main exists and is a zero argument void function
 checkMain :: Maybe Def -> CheckerMonad
 checkMain Nothing = throwError NoMainException
 checkMain (Just (FnDef pos rt _ args _)) = do
@@ -149,6 +149,8 @@ instance Checker Program where
     do
       unless (uniqueDefs defs) $
         throwError (DuplicateDefinitionsException pos)
+      when (defaultFunOverride defs) $
+        throwError (DefaultOverrideException pos)
       mapM_ checkType defs
       checkMain $ findByIdent defs
 

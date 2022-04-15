@@ -29,6 +29,10 @@ defToIdent (GlDef _ _ id _) = id
 uniqueDefs :: [Def] -> Bool
 uniqueDefs ds = length ds == length (nubfil $ P.map defToIdent ds)
 
+defaultFunOverride :: [Def] -> Bool
+defaultFunOverride = P.foldr
+  (\ d -> (||) (show (defToIdent d) `elem` P.map (show . fst) defaults)) False
+
 argTypes :: [Arg] -> [(Ident, EnvType)]
 argTypes [] = []
 argTypes (x:xs) = (id, t) : argTypes xs
