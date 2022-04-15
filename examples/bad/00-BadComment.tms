@@ -1,2 +1,2 @@
-# I'm not a comment :(
+/ I'm not a comment :(
 void main() { return; }
