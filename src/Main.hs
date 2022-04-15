@@ -3,7 +3,6 @@ module Main where
 import System.IO (hPutStrLn, stderr)
 import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
-import System.Directory.Internal.Prelude (exitFailure)
 import Syntax.AbsTempest
 import Syntax.ParTempest ( pProgram, myLexer )
 import Typecheck.TypeChecker

@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use infix" #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Interpret.InterpreterHelper where
 
