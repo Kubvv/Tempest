@@ -42,8 +42,10 @@ instance Interpreter Block where
 
 instance Interpreter Stmt where
 
+  --Empty statement
   interpret (SEmpty _) = return RNothing
 
+  --Block
   interpret (SBStmt _ b) = interpretIfNotRet $
     do
       mem <- get
@@ -53,6 +55,7 @@ instance Interpreter Stmt where
       put $ putEnv envi newMem
       return RNothing
 
+  --Init and Assignment
   interpret (SInit _ def) = interpretIfNotRet $
     do
       interpret def
@@ -64,6 +67,7 @@ instance Interpreter Stmt where
       put $ updateS id r mem
       return RNothing
 
+  --Increment and Decrement
   interpret (SIncr _ id) = interpretIfNotRet $
     do
       mem <- get
@@ -78,6 +82,7 @@ instance Interpreter Stmt where
       put $ updateS id r mem
       return RNothing
 
+  --Returns
   interpret (SRet _ e) = interpretIfNotRet $
     do
       mem <- get
@@ -91,6 +96,7 @@ instance Interpreter Stmt where
       put $ putReturn RVoid mem
       return RNothing
 
+  --Conditionals
   interpret (SCond _ cond block) = interpretIfNotRet $
     do
       mem <- get
@@ -117,6 +123,7 @@ instance Interpreter Stmt where
       put $ putEnv envi newMem
       return RNothing
 
+  --While
   interpret wh@(SWhile _ cond block) = interpretIfNotRet $
     do
       mem <- get
@@ -131,6 +138,7 @@ instance Interpreter Stmt where
       put $ putEnv envi newMem
       return RNothing
 
+  --Expression
   interpret (SExp _ e) = interpretIfNotRet $
     do
       interpret e
