@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-interpreter=interpreter
+interpreter=src/interpreter
 examples_path=examples
 
 echo -e "-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
