@@ -4,11 +4,12 @@ void main() {
   int x = 0;
 
   while (i > 10) {
-    printInt(x);
+    printInt(i);
     x = x + i;
     i--;
   }
   
+  printInt(i);
   printInt(x);
 
   return;

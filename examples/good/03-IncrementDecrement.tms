@@ -1,0 +1,11 @@
+void main() {
+
+  int x = 0;
+  printInt(x);
+  x++;
+  printInt(x);
+  x--;
+  printInt(x);
+
+  return;
+}

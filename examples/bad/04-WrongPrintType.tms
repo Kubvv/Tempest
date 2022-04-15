@@ -1,0 +1,7 @@
+void main () {
+
+  string x = "not ok";
+  printInt(x);
+  
+  return;
+}

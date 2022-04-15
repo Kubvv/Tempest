@@ -1,0 +1,8 @@
+void main() {
+  printBool(x());  
+  return;
+}
+
+boolean x() {
+  return true;
+}

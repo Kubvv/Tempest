@@ -1,0 +1,8 @@
+void main() {
+
+  printInt(1);
+  printBool(true);
+  printString("x");
+
+  return;
+}

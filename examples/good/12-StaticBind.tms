@@ -1,0 +1,13 @@
+void main() {
+  int x = 1;
+
+  int y() {
+    printInt(x);
+    return x;
+  }
+
+  int x = 2;
+  printInt(y());
+
+  return;
+}
