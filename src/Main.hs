@@ -7,6 +7,7 @@ import System.Directory.Internal.Prelude (exitFailure)
 import Syntax.AbsTempest
 import Syntax.ParTempest ( pProgram, myLexer )
 import Typecheck.TypeChecker
+import Interpret.Interpreter
 import BNFC.Abs (BNFC'Position)
 
 main :: IO ()
@@ -43,14 +44,18 @@ exitErrWithMessage err =
 checkSyntax :: String -> IO ()
 checkSyntax input = 
   case pProgram $ myLexer input of
-    Left err -> exitErrWithMessage err
     Right t -> checkTypes t
+    Left err -> exitErrWithMessage err
 
 checkTypes :: Program -> IO ()
 checkTypes t =
   case runTypeCheck t of
+    Right _ -> checkInterpret t
     Left err -> exitErrWithMessage $ show err
-    Right _ -> exitSuccess
   
--- interpret :: Program -> IO ()
--- interpret t =
+checkInterpret :: Program -> IO ()
+checkInterpret t = do
+  result <- runInterpreter t
+  case result of
+    Right _ -> exitSuccess
+    Left err -> exitErrWithMessage $ show err
