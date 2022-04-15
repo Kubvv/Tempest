@@ -13,7 +13,7 @@ instance Interpreter Program where
   interpret (PProgram pos defs) =
     do
       mapM_ interpret defs
-      interpret (EApp pos (Ident "main") []) --TODO
+      interpret $ fromJust $ findMainBlock defs
 
 instance Interpreter Def where
 
@@ -21,28 +21,28 @@ instance Interpreter Def where
   interpret (GlDef _ _ id e) =
     do
       mem <- get
-      v <- interpret e
-      put $ putS id v mem
-      return VNothing
+      r <- interpret e
+      put $ putS id r mem
+      return RNothing
 
   --Function definition
   interpret (FnDef _ _ id args block) =
     do
       mem <- get
-      let v = VFun args block (env mem)
-      put $ putS id v mem
-      return VNothing
+      let r = RFun args block (env mem)
+      put $ putS id r mem
+      return RNothing
 
 instance Interpreter Block where
 
   interpret (BBlock _ stmts) =
     do
       mapM_ interpret stmts
-      return VNothing
+      return RNothing
 
 instance Interpreter Stmt where
 
-  interpret (SEmpty _) = return VNothing
+  interpret (SEmpty _) = return RNothing
 
   interpret (SBStmt _ b) = interpretIfNotRet $
     do
@@ -50,7 +50,7 @@ instance Interpreter Stmt where
       let envi = env mem
       interpret b
       put $ putEnv envi mem
-      return VNothing
+      return RNothing
 
   interpret (SInit _ def) = interpretIfNotRet $
     do
@@ -59,36 +59,36 @@ instance Interpreter Stmt where
   interpret (SAss _ id e) = interpretIfNotRet $
     do
       mem <- get
-      v <- interpret e
-      put $ updateS id v mem
-      return VNothing
+      r <- interpret e
+      put $ updateS id r mem
+      return RNothing
 
   interpret (SIncr _ id) = interpretIfNotRet $
     do
       mem <- get
-      let v = fromJust $ incrValue $ getS id mem
-      put $ updateS id v mem
-      return VNothing
+      let r = fromJust $ incrResult $ getS id mem
+      put $ updateS id r mem
+      return RNothing
 
   interpret (SDecr _ id) = interpretIfNotRet $
     do
       mem <- get
-      let v = fromJust $ decrValue $ getS id mem
-      put $ updateS id v mem
-      return VNothing
+      let r = fromJust $ decrResult $ getS id mem
+      put $ updateS id r mem
+      return RNothing
 
   interpret (SRet _ e) = interpretIfNotRet $
     do
       mem <- get
-      v <- interpret e
-      put $ putReturn v mem
-      return VNothing
+      r <- interpret e
+      put $ putReturn r mem
+      return RNothing
 
   interpret (SVRet _) = interpretIfNotRet $
     do
       mem <- get
-      put $ putReturn VVoid mem
-      return VNothing
+      put $ putReturn RVoid mem
+      return RNothing
 
   interpret (SCond _ cond block) = interpretIfNotRet $
     do
@@ -98,9 +98,9 @@ instance Interpreter Stmt where
       if fromJust $ extractBool b then
         interpret block
       else
-        return VNothing
+        return RNothing
       put $ putEnv envi mem
-      return VNothing
+      return RNothing
 
   interpret (SCondElse _ cond block1 block2) = interpretIfNotRet $
     do
@@ -112,7 +112,7 @@ instance Interpreter Stmt where
       else
         interpret block2
       put $ putEnv envi mem
-      return VNothing
+      return RNothing
 
   interpret wh@(SWhile _ cond block) = interpretIfNotRet $
     do
@@ -123,9 +123,9 @@ instance Interpreter Stmt where
       interpret block >>
       interpret wh
     else
-      return VNothing
+      return RNothing
     put $ putEnv envi mem
-    return VNothing
+    return RNothing
 
   interpret (SExp _ e) = interpretIfNotRet $
     do
@@ -140,90 +140,101 @@ instance Interpreter Expr where
       gets (getS id)
 
   --Trivial
-  interpret (ELitInt _ x) = return $ VInt x
-  interpret (ELitTrue _) = return $ VBool True
-  interpret (ELitFalse _) = return $ VBool False
-  interpret (EString _ str) = return $ VStr str
+  interpret (ELitInt _ x) = return $ RInt x
+  interpret (ELitTrue _) = return $ RBool True
+  interpret (ELitFalse _) = return $ RBool False
+  interpret (EString _ str) = return $ RStr str
 
   --Function application
   interpret (EApp _ id args) =
-    do
-      mem <- get
-      let envi = env mem
-      vs <- mapM interpret args
-      let locs = map (getArgLoc envi) args
-      let fun = getS id mem
-      put $ putEnv (fromJust $ getFunEnv fun) mem
-      put $ putS id fun mem
-      putArgs vs locs (fromJust $ getFunArgs fun)
-      interpret $ fromJust $ getFunBlock fun
-      newMem <- get
-      let result = returnV newMem
-      put $ putEnv envi newMem
-      put $ putReturn VNothing newMem
-      return result
+    if showIdent id `elem` defaults then
+      do
+        rs <- mapM interpret args
+        interpretDefault id rs
+    else
+      interpretFromEnvironment id args
 
   --Negation and Not
   interpret (ENeg _ e) =
     do
-      v <- interpret e
-      let x = fromJust $ extractInt v
-      return $ VInt (-x)
+      r <- interpret e
+      let x = fromJust $ extractInt r
+      return $ RInt (-x)
 
   interpret (ENot _ e) =
     do
-      v <- interpret e
-      let b = fromJust $ extractBool v
-      return $ VBool (not b)
+      r <- interpret e
+      let b = fromJust $ extractBool r
+      return $ RBool (not b)
 
   --Arithmetic
   interpret (EMul pos e1 op e2) =
     do
       let fun = getArthOperator op
-      v1 <- interpret e1
-      v2 <- interpret e1
-      let x1 = fromJust $ extractInt v1
-      let x2 = fromJust $ extractInt v2
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractInt r1
+      let x2 = fromJust $ extractInt r2
       when (isDiv op && x2 == 0) $
         throwError (ArithmeticException pos)
-      return $ VInt (fun x1 x2)
+      return $ RInt (fun x1 x2)
 
   interpret (EAdd _ e1 op e2) =
     do
       let fun = getArthOperator op
-      v1 <- interpret e1
-      v2 <- interpret e1
-      let x1 = fromJust $ extractInt v1
-      let x2 = fromJust $ extractInt v2
-      return $ VInt (fun x1 x2)
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractInt r1
+      let x2 = fromJust $ extractInt r2
+      return $ RInt (fun x1 x2)
 
   --Comparison
   interpret (ERel _ e1 op e2) =
     do
       let fun = getCompOperator op
-      v1 <- interpret e1
-      v2 <- interpret e1
-      let x1 = fromJust $ extractInt v1
-      let x2 = fromJust $ extractInt v2
-      return $ VBool (fun x1 x2)
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractInt r1
+      let x2 = fromJust $ extractInt r2
+      return $ RBool (fun x1 x2)
 
   --Logic
   interpret (EAnd _ e1 e2) =
     do
-      v1 <- interpret e1
-      v2 <- interpret e1
-      let x1 = fromJust $ extractBool v1
-      let x2 = fromJust $ extractBool v2
-      return $ VBool ((&&) x1 x2)
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractBool r1
+      let x2 = fromJust $ extractBool r2
+      return $ RBool ((&&) x1 x2)
 
   interpret (EOr _ e1 e2) =
     do
-      v1 <- interpret e1
-      v2 <- interpret e1
-      let x1 = fromJust $ extractBool v1
-      let x2 = fromJust $ extractBool v2
-      return $ VBool ((||) x1 x2)
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractBool r1
+      let x2 = fromJust $ extractBool r2
+      return $ RBool ((||) x1 x2)
 
-runInterpreter :: Program -> IO (Either InterpretException Value)
+
+interpretFromEnvironment :: Ident -> [Expr] -> InterpreterMonad
+interpretFromEnvironment id args =
+  do
+    mem <- get
+    let envi = env mem
+    rs <- mapM interpret args
+    let locs = map (getArgLoc envi) args
+    let fun = getS id mem
+    let (args, block, env) = fromJust $ extractFun fun
+    put $ putEnv env mem
+    put $ putS id fun mem
+    putArgs rs locs args
+    interpret block
+    newMem <- get
+    let result = returnR newMem
+    put $ putEnv envi newMem
+    put $ putReturn RNothing newMem
+    return result
+
+runInterpreter :: Program -> IO (Either InterpretException Result)
 runInterpreter program =
   runExceptT $ evalStateT (interpret program) emptyState

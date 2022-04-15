@@ -24,7 +24,7 @@ instance Show InterpretException where
     "Division by zero at " ++ showBnfcPos pos
   show (ReferenceException pos id) = concat [
     "Argument passed by reference denoted as ", showIdent id,
-    "is not a variable at ", showBnfcPos pos
+    " is not a variable at ", showBnfcPos pos
     ]
   show (NotImplementedException id) = concat [
     "Function ", id,
@@ -45,20 +45,20 @@ showIdent (Ident s) = s
 
 type Loc = Integer
 type Env = M.Map Ident Loc
-type Store = M.Map Loc Value
+type Store = M.Map Loc Result
 
 data Mem = State {
   env :: Env,
   store :: Store,
   freeloc :: Integer,
-  returnV :: Value
+  returnR :: Result
 }
 
 emptyState = State {
   env = M.empty,
   store = M.empty,
   freeloc = 0,
-  returnV = VNothing
+  returnR = RNothing
 }
 
 -- State and reader handling
@@ -68,99 +68,89 @@ putEnv env (State _ str fl rv) = State env str fl rv
 getLoc :: Ident -> Env -> Loc
 getLoc id env = fromJust $ M.lookup id env
 
-getVal :: Loc -> Store -> Value
-getVal l str = fromJust $ M.lookup l str
+getRes :: Loc -> Store -> Result
+getRes l str = fromJust $ M.lookup l str
 
 putLoc :: Ident -> Loc -> Env -> Env
 putLoc = M.insert
 
-putVal :: Loc -> Value -> Store -> Store
-putVal = M.insert
+putRes :: Loc -> Result -> Store -> Store
+putRes = M.insert
 
 newloc :: Mem -> (Loc, Mem)
 newloc (State env str fl rv) = (fl, State env str (fl+1) rv)
 
-getS :: Ident -> Mem -> Value
-getS id (State env str _ _) = getVal (getLoc id env) str
+getS :: Ident -> Mem -> Result
+getS id (State env str _ _) = getRes (getLoc id env) str
 
-putS :: Ident -> Value -> Mem -> Mem
+putS :: Ident -> Result -> Mem -> Mem
 putS id x (State env str fl rv) = State newEnv newStore (fl+1) rv
   where
     newEnv = putLoc id fl env
-    newStore = putVal fl x str
+    newStore = putRes fl x str
 
-updateS :: Ident -> Value -> Mem -> Mem
+updateS :: Ident -> Result -> Mem -> Mem
 updateS id x (State env str fl rv) = State env newStore fl rv
   where
     l = getLoc id env
-    newStore = putVal l x str
+    newStore = putRes l x str
 
 -- Return handling
-putReturn :: Value -> Mem -> Mem
+putReturn :: Result -> Mem -> Mem
 putReturn v (State env str fl _) = State env str fl v
 
-getReturn :: Mem -> Value
+getReturn :: Mem -> Result
 getReturn (State _ _ _ rv) = rv
 
 isReturn :: Mem -> Bool
-isReturn (State _ _ _ VNothing) = False
+isReturn (State _ _ _ RNothing) = False
 isReturn _ = True
 
----- Value ----
+---- Result ----
 
-data Value = --TODO wymyśleć lepszą nazwe
-  VInt Integer
-  | VBool Bool
-  | VStr String
-  | VFun [Arg] Block Env
-  | VVoid
-  | VNothing
+data Result = --TODO wymyśleć lepszą nazwe
+  RInt Integer
+  | RBool Bool
+  | RStr String
+  | RFun [Arg] Block Env
+  | RVoid
+  | RNothing
 
-instance Show Value where
-  show (VInt x) = show x
-  show (VBool x) = show x
-  show (VStr x) = x
+instance Show Result where
+  show (RInt x) = show x
+  show (RBool x) = show x
+  show (RStr x) = x
   show _ = ""
 
-extractInt :: Value -> Maybe Integer
-extractInt (VInt i) = Just i
+--Unpack the result to get values inside
+extractInt :: Result -> Maybe Integer
+extractInt (RInt i) = Just i
 extractInt _ = Nothing
 
-extractBool :: Value -> Maybe Bool
-extractBool (VBool b) = Just b
+extractBool :: Result -> Maybe Bool
+extractBool (RBool b) = Just b
 extractBool _ = Nothing
 
-extractString :: Value -> Maybe String
-extractString (VStr s) = Just s
+extractString :: Result -> Maybe String
+extractString (RStr s) = Just s
 extractString _ = Nothing
 
-extractFun :: Value -> Maybe ([Arg], Block, Env)
-extractFun (VFun args block env) = Just (args, block, env)
+extractFun :: Result -> Maybe ([Arg], Block, Env)
+extractFun (RFun args block env) = Just (args, block, env)
 extractFun _ = Nothing
 
-incrValue :: Value -> Maybe Value
-incrValue (VInt i) = Just $ VInt $ i+1
-incrValue _ = Nothing 
+--Increment/decrement integer by 1 or do nothing
+incrResult :: Result -> Maybe Result
+incrResult (RInt i) = Just $ RInt $ i+1
+incrResult _ = Nothing 
 
-decrValue :: Value -> Maybe Value
-decrValue (VInt i) = Just $ VInt $ i-1
-decrValue _ = Nothing 
-
-getFunEnv :: Value -> Maybe Env
-getFunEnv (VFun _ _ env) = Just env
-getFunEnv _ = Nothing
-
-getFunBlock :: Value -> Maybe Block
-getFunBlock (VFun _ b _) = Just b
-getFunBlock _ = Nothing
-
-getFunArgs :: Value -> Maybe [Arg]
-getFunArgs (VFun args _ _) = Just args
-getFunArgs _ = Nothing
+decrResult :: Result -> Maybe Result
+decrResult (RInt i) = Just $ RInt $ i-1
+decrResult _ = Nothing
 
 ---- InterpreterMonad ----
 
-type InterpreterMonad = StateT Mem (ExceptT InterpretException IO) Value
+type InterpreterMonad = StateT Mem (ExceptT InterpretException IO) Result
 
 class Interpreter a where
 
