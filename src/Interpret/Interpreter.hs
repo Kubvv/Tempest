@@ -119,17 +119,17 @@ instance Interpreter Stmt where
 
   interpret wh@(SWhile _ cond block) = interpretIfNotRet $
     do
-    mem <- get
-    b <- interpret cond
-    let envi = env mem
-    if fromJust $ extractBool b then
-      interpret block >>
-      interpret wh
-    else
+      mem <- get
+      b <- interpret cond
+      let envi = env mem
+      if fromJust $ extractBool b then
+        interpret block >>
+        interpret wh
+      else
+        return RNothing
+      newMem <- get
+      put $ putEnv envi newMem
       return RNothing
-    newMem <- get
-    put $ putEnv envi newMem
-    return RNothing
 
   interpret (SExp _ e) = interpretIfNotRet $
     do
@@ -150,13 +150,13 @@ instance Interpreter Expr where
   interpret (EString _ str) = return $ RStr str
 
   --Function application
-  interpret (EApp _ id args) =
+  interpret (EApp pos id args) =
     if showIdent id `elem` defaults then
       do
         rs <- mapM interpret args
         interpretDefault id rs
     else
-      interpretFromEnvironment id args
+      interpretFromEnvironment pos id args
 
   --Negation and Not
   interpret (ENeg _ e) =
@@ -220,8 +220,8 @@ instance Interpreter Expr where
       return $ RBool ((||) x1 x2)
 
 
-interpretFromEnvironment :: Ident -> [Expr] -> InterpreterMonad
-interpretFromEnvironment id args =
+interpretFromEnvironment :: BNFC'Position -> Ident -> [Expr] -> InterpreterMonad
+interpretFromEnvironment pos id args =
   do
     mem <- get
     let envi = env mem
@@ -235,6 +235,8 @@ interpretFromEnvironment id args =
     interpret blockF
     newMem <- get
     let result = returnR newMem
+    unless (isReturn newMem) $
+      throwError (NoReturnEncounteredException pos id)
     modify $ putEnv envi
     modify $ putReturn RNothing
     return result

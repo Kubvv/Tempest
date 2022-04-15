@@ -12,11 +12,11 @@ import Control.Monad.State
 
 ---- Exception ----
 
-type InterpretException = InterpretException' BNFC'Position
-data InterpretException' a =
-  ArithmeticException a
-  | ReferenceException a Ident
+data InterpretException =
+  ArithmeticException BNFC'Position 
+  | ReferenceException BNFC'Position Ident
   | NotImplementedException String
+  | NoReturnEncounteredException BNFC'Position Ident
 
 instance Show InterpretException where
   show (ArithmeticException pos) =
@@ -28,6 +28,10 @@ instance Show InterpretException where
   show (NotImplementedException id) = concat [
     "Function ", id,
     " is declared as default, but it doesn't have a default implementation"
+    ]
+  show (NoReturnEncounteredException pos id) = concat [
+    "No return encountered for function ", showIdent id,
+    " called at ", showBnfcPos pos
     ]
 
 showBnfcPos :: BNFC'Position -> String
