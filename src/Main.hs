@@ -7,7 +7,6 @@ import Syntax.AbsTempest
 import Syntax.ParTempest ( pProgram, myLexer )
 import Typecheck.TypeChecker
 import Interpret.Interpreter
-import BNFC.Abs (BNFC'Position)
 
 main :: IO ()
 main = 
