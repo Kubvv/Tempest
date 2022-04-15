@@ -1,0 +1,10 @@
+void x(int x, int @ y) {
+  return;
+}
+
+void main() {
+
+  x(1, 2);
+  
+  return;
+}

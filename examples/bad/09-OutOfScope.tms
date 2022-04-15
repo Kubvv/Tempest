@@ -1,0 +1,12 @@
+void main() {
+
+  string x = "1";
+  {
+    string y = "2";
+  }
+
+  printString(x);
+  printString(y);
+
+  return;
+}
