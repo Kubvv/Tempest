@@ -1,0 +1,10 @@
+int x() {
+  if (false) {
+    return 1;
+  }
+}
+
+void main() {
+  printInt(x());
+  return;
+}
