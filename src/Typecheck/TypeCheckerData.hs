@@ -106,7 +106,7 @@ data TypeCheckException =
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
     "Type mismatch at ", showBnfcPos pos,
-    ", expeceted type ", show exp,
+    ", expected type ", show exp,
     " but got type ", show act
     ]
   show (UnexpectedToken pos id) = concat [
@@ -125,7 +125,7 @@ instance Show TypeCheckException where
   show (DuplicateDefinitionsException pos) =
     "Two definitons are named the same at " ++ showBnfcPos pos
   show (NoReturnException pos) =
-    "No return found for function at " ++ showBnfcPos pos
+    "No return found for a function at " ++ showBnfcPos pos
   show (UnexpectedReturn pos) =
     "Unexpected return at " ++ showBnfcPos pos
   show NoMainException =
