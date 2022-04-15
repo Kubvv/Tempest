@@ -6,14 +6,13 @@ import Data.Map as M
 import Data.Maybe
 
 import Syntax.AbsTempest
-import BNFC.Abs (BNFC'Position)
 import Control.Monad.Except
 import Control.Monad.State
 
 
 ---- Exception ----
 
-type InterpretException = InterpretException' BNFC.Abs.BNFC'Position
+type InterpretException = InterpretException' BNFC'Position
 data InterpretException' a =
   ArithmeticException a
   | ReferenceException a Ident
@@ -31,7 +30,7 @@ instance Show InterpretException where
     " is declared as default, but it doesn't have a default implementation"
     ]
 
-showBnfcPos :: BNFC.Abs.BNFC'Position -> String
+showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
   "line ", show r,
   ", position ", show c
