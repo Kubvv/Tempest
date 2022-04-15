@@ -1,0 +1,8 @@
+int printString(int x, int y) {
+  return x+y;
+}
+
+void main() {
+  int y = printString(2,3);
+  return;
+}
