@@ -37,7 +37,8 @@ void main() {
   }
 
   printInt(byref);
-  printInt(byvalue);
+  printBool(true);
+  printString(z);
 
   printBool(res == 0 && byref == 6 && byvalue == 3 && y == 3 && x == 20);
 
