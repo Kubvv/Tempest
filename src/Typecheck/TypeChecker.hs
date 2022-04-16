@@ -30,7 +30,7 @@ checkFunction pos (EnvFun ret exTypes) args =
   do
     acTypes <- mapM getType args
     let comparedArgs = zipWith (==) exTypes acTypes
-    if and comparedArgs && (length comparedArgs == length exTypes) then
+    if and comparedArgs && (length acTypes == length exTypes) then
       return ret
     else
       throwError (BadArgumentTypes pos exTypes acTypes)

@@ -85,7 +85,8 @@ initEnv = Env (M.fromList defaults) Nothing False
 defaults :: [(Ident, EnvType)]
 defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt]),
   (Ident "printBool", EnvFun EnvVoid [EnvBool]),
-  (Ident "printString", EnvFun EnvVoid [EnvStr])]
+  (Ident "printString", EnvFun EnvVoid [EnvStr]),
+  (Ident "error", EnvFun EnvVoid [])]
 
 ---- Exception ----
 
