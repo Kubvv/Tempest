@@ -40,8 +40,9 @@ defToIdent :: Def -> Ident
 defToIdent (FnDef _ _ id _ _) = id
 defToIdent (GlDef _ _ id _) = id
 
-uniqueDefs :: [Def] -> Bool
-uniqueDefs ds = length ds == length (nubfil $ P.map defToIdent ds)
+defToPos :: Def -> BNFC'Position
+defToPos (FnDef pos _ _ _ _) = pos
+defToPos (GlDef pos _ _ _) = pos
 
 defaultFunOverride :: [Def] -> Bool
 defaultFunOverride = P.foldr

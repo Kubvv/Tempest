@@ -134,7 +134,7 @@ instance Show TypeCheckException where
     ", but got types ", show act
     ]
   show (DuplicateDefinitionsException pos) =
-    "Two definitons are named the same at " ++ showBnfcPos pos
+    "Duplicated definition name at " ++ showBnfcPos pos
   show (ReferenceException pos id) = concat [
     "Expected variable at ", showBnfcPos pos,
     " as this argument is passed by reference to the function ",

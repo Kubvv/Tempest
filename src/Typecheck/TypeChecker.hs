@@ -4,6 +4,7 @@ module Typecheck.TypeChecker where
 
 import Prelude as P
 import Data.Map as M
+import Data.Set as S
 
 import Typecheck.TypeCheckerData
 import Typecheck.TypeCheckerHelper
@@ -78,6 +79,16 @@ checkMain (Just (FnDef pos rt _ args _)) = do
   checkCondition (ret == EnvVoid && P.null args) (WrongMainDefinitionException pos)
 checkMain (Just _) = return ()
 
+--Checks for dupliactes in definition naming
+checkDefs :: Int -> [Def] -> Set Ident -> CheckerMonad
+checkDefs _ [] _ = return ()
+checkDefs es (d:ds) set = if es == S.size newSet 
+  then
+    checkDefs (es + 1) ds newSet
+  else
+    throwError (DuplicateDefinitionsException (defToPos d))
+  where
+    newSet = S.insert (defToIdent d) set
 
 getType :: Expr -> GetterMonad EnvType 
 
@@ -157,10 +168,9 @@ instance Checker Program where
 
   checkType (PProgram pos defs) =
     do
-      unless (uniqueDefs defs) $
-        throwError (DuplicateDefinitionsException pos)
       when (defaultFunOverride defs) $
         throwError (DefaultOverrideException pos)
+      checkDefs 1 defs S.empty
       mapM_ checkType defs
       checkMain $ findByIdent defs
 
