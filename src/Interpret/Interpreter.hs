@@ -20,8 +20,8 @@ instance Interpreter Def where
   --Variable definition
   interpret (GlDef _ _ id e) =
     do
-      mem <- get
       r <- interpret e
+      mem <- get
       put $ putS id r mem
       return RNothing
 
@@ -62,8 +62,8 @@ instance Interpreter Stmt where
 
   interpret (SAss _ id e) = interpretIfNotRet $
     do
-      mem <- get
       r <- interpret e
+      mem <- get
       put $ updateS id r mem
       return RNothing
 
@@ -85,8 +85,8 @@ instance Interpreter Stmt where
   --Returns
   interpret (SRet _ e) = interpretIfNotRet $
     do
-      mem <- get
       r <- interpret e
+      mem <- get
       put $ putReturn r mem
       return RNothing
 
@@ -99,8 +99,8 @@ instance Interpreter Stmt where
   --Conditionals
   interpret (SCond _ cond block) = interpretIfNotRet $
     do
-      mem <- get
       b <- interpret cond
+      mem <- get
       let envi = env mem
       if fromJust $ extractBool b then
         interpret block
@@ -112,8 +112,8 @@ instance Interpreter Stmt where
 
   interpret (SCondElse _ cond block1 block2) = interpretIfNotRet $
     do
-      mem <- get
       b <- interpret cond
+      mem <- get
       let envi = env mem
       if fromJust $ extractBool b then
         interpret block1
@@ -126,8 +126,8 @@ instance Interpreter Stmt where
   --While
   interpret wh@(SWhile _ cond block) = interpretIfNotRet $
     do
-      mem <- get
       b <- interpret cond
+      mem <- get
       let envi = env mem
       if fromJust $ extractBool b then
         interpret block >>

@@ -123,7 +123,9 @@ instance Show Result where
   show (RInt x) = show x
   show (RBool x) = show x
   show (RStr x) = x
-  show _ = ""
+  show (RFun args block env) = "Function"
+  show RVoid = "Void"
+  show RNothing = "Nothing"
 
 --Unpack the result to get values inside
 extractInt :: Result -> Maybe Integer
