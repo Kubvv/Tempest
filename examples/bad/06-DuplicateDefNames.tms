@@ -1,3 +1,5 @@
+int y = 0;
+
 int x = 0;
 
 void x(int y) {
