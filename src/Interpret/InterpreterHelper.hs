@@ -2,6 +2,7 @@
 module Interpret.InterpreterHelper where
 
 import Prelude as P
+import Data.Maybe
 import Interpret.InterpreterData
 import Syntax.AbsTempest
 import Control.Monad.Except
@@ -67,11 +68,11 @@ isDiv :: MulOp -> Bool
 isDiv (ODiv _) = True
 isDiv _ = False
 
-getArgLoc :: Env -> Expr -> Loc
-getArgLoc env (EVar _ id) = getLoc id env
-getArgLoc _ _ = -1
+getArgLoc :: Env -> Expr -> Maybe Loc
+getArgLoc env (EVar _ id) = Just (getLoc id env)
+getArgLoc _ _ = Nothing
 
-putArgs :: [Result] -> [Loc] -> [Arg] -> InterpreterMonad
+putArgs :: [Result] -> [Maybe Loc] -> [Arg] -> InterpreterMonad
 putArgs [] _ _ = return RNothing
 putArgs (r:rs) (l:ls) (a:as) =
   do
@@ -79,14 +80,12 @@ putArgs (r:rs) (l:ls) (a:as) =
     putArgs rs ls as
 putArgs _ _ _ = return RNothing
 
-putArg :: Result -> Loc -> Arg -> InterpreterMonad
-putArg _ (-1) (RArg pos _ id) =
-  throwError $ ReferenceException pos id
-
-putArg _ l (RArg _ _ id) =
+putArg :: Result -> Maybe Loc -> Arg -> InterpreterMonad
+putArg _ ml (RArg _ _ id) =
   do
     mem <- get
     let envi = env mem
+    let l = fromJust ml
     let newEnvi = putLoc id l envi
     put $ putEnv newEnvi mem
     return RNothing

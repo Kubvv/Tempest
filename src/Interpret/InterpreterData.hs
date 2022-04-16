@@ -14,7 +14,6 @@ import Control.Monad.State
 
 data InterpretException =
   ArithmeticException BNFC'Position 
-  | ReferenceException BNFC'Position Ident
   | NotImplementedException BNFC'Position String
   | ErrorMethodCalledException BNFC'Position
   | NoReturnEncounteredException BNFC'Position Ident
@@ -22,10 +21,6 @@ data InterpretException =
 instance Show InterpretException where
   show (ArithmeticException pos) =
     "Division by zero at " ++ showBnfcPos pos
-  show (ReferenceException pos id) = concat [
-    "Argument passed by reference denoted as ", showIdent id,
-    " is not a variable at ", showBnfcPos pos
-    ]
   show (NotImplementedException pos s) = concat [
     "Function ", s, 
     " at ", showBnfcPos pos,
