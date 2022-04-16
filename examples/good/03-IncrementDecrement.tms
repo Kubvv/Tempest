@@ -6,6 +6,7 @@ void main() {
   printInt(x);
   x--;
   printInt(x);
+  printBool(x == 0);
 
   return;
 }

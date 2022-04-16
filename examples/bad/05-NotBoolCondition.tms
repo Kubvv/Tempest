@@ -1,0 +1,6 @@
+void main() {
+  if (2+2) {
+    printString("Not bool");
+  }
+  return;    
+}

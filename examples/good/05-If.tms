@@ -12,5 +12,7 @@ void main() {
   }
 
   printInt(i);
+  printBool(i == 19);
+
   return;
 }

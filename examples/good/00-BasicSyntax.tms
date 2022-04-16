@@ -6,19 +6,20 @@ string z = "print me!";
 int someFun(int byValue, int @byRef) {
 
   int someNestedFun() {
-      return y;
+    return y;
   }
 
   if (byValue > byRef && (true || false)) {
-      byValue = byValue % 2;
-      return byValue + 42;
+    byValue = byValue % 2;
+    return byValue + 42;
   } else {
-      byRef++;
+    byRef++;
   }
 
   if (byRef % 4 == 1) {
-      return 0;
+    return 0;
   }
+  printInt(byRef);
 
   return byValue + someNestedFun();
 }
@@ -31,12 +32,14 @@ void main() {
   int res = someFun(byvalue, byref);
 
   while (res > 0) {
-      x = x + y;
-      res--;
+    x = x + y;
+    res--;
   }
 
-  printString(z);
-  printInt(3);
-  printBool(true);
+  printInt(byref);
+  printInt(byvalue);
+
+  printBool(res == 0 && byref == 6 && byvalue == 3 && y == 3 && x == 20);
+
   return;
 }

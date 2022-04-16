@@ -12,5 +12,7 @@ void main() {
   printInt(i);
   printInt(x);
 
+  printBool(i == 10 && x == 155);
+
   return;
 }

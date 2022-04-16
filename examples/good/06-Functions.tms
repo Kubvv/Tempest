@@ -7,12 +7,18 @@ void functionB(int i) {
   return;
 }
 
+int functionC(int i) {
+  functionB(i);
+  return i * i;
+}
+
 void main() {
 
-  int z = 0;
+  int z = 3;
   if (functionA(false)) {
-    functionB(z);
+    z = functionC(z);
     printInt(z);
+    printBool(z == 9);
   }
 
   return;

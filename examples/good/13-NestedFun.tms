@@ -9,5 +9,6 @@ int a(int x) {
 
 void main() {
   printInt(a(1));
+  printBool(a(1) == 6);
   return;
 }

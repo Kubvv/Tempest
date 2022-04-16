@@ -14,9 +14,7 @@ void main() {
   functionA(i);
   printInt(i);
   functionB(i);
-  if (i == 2) {
-    printString("Udało się!");
-  }
+  printBool(i == 2);
 
   return;
 }
