@@ -162,7 +162,7 @@ instance Interpreter Expr where
     if showIdent id `elem` defaults then
       do
         rs <- mapM interpret args
-        interpretDefault id rs
+        interpretDefault pos id rs
     else
       interpretFromEnvironment pos id args
 
@@ -227,6 +227,15 @@ instance Interpreter Expr where
       let x2 = fromJust $ extractBool r2
       return $ RBool ((||) x1 x2)
 
+
+interpretIfNotRet :: InterpreterMonad -> InterpreterMonad
+interpretIfNotRet inter = do
+  mem <- get
+  let isRet = isReturn mem
+  if isRet then
+    return RNothing 
+  else
+    inter
 
 interpretFromEnvironment :: BNFC'Position -> Ident -> [Expr] -> InterpreterMonad
 interpretFromEnvironment pos id args =

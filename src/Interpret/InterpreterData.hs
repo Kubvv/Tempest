@@ -15,7 +15,8 @@ import Control.Monad.State
 data InterpretException =
   ArithmeticException BNFC'Position 
   | ReferenceException BNFC'Position Ident
-  | NotImplementedException String
+  | NotImplementedException BNFC'Position String
+  | ErrorMethodCalledException BNFC'Position
   | NoReturnEncounteredException BNFC'Position Ident
 
 instance Show InterpretException where
@@ -25,14 +26,17 @@ instance Show InterpretException where
     "Argument passed by reference denoted as ", showIdent id,
     " is not a variable at ", showBnfcPos pos
     ]
-  show (NotImplementedException id) = concat [
-    "Function ", id,
+  show (NotImplementedException pos s) = concat [
+    "Function ", s, 
+    " at ", showBnfcPos pos,
     " is declared as default, but it doesn't have a default implementation"
     ]
   show (NoReturnEncounteredException pos id) = concat [
     "No return encountered for function ", showIdent id,
     " called at ", showBnfcPos pos
     ]
+  show (ErrorMethodCalledException pos) =
+    "Error method was called at " ++ showBnfcPos pos
 
 showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
