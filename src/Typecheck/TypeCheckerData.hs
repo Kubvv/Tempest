@@ -12,26 +12,31 @@ import Control.Monad.Identity (Identity)
 
 ---- EnvType ----
 
-data EnvType = 
+data EnvType =
   EnvInt
   | EnvBool
   | EnvStr
   | EnvVoid
-  | EnvFun EnvType [EnvType]
+  | EnvFun EnvType [EnvType] [Bool]
 
 instance Show EnvType where
   show EnvInt = "int"
   show EnvBool = "boolean"
   show EnvStr = "string"
   show EnvVoid = "void"
-  show (EnvFun ret args) = "function from [" ++ show args ++ "] to " ++ show ret
+  show (EnvFun ret args _) = "function from [" ++ show args ++ "] to " ++ show ret
 
 instance Eq EnvType where
   EnvInt == EnvInt = True
   EnvBool == EnvBool = True
   EnvStr == EnvStr = True
   EnvVoid == EnvVoid = True
-  (EnvFun ret1 args1) == (EnvFun ret2 args2) = (length args1 == length args2) && and (zipWith (==) args1 args2) && (ret1 == ret2)
+  (EnvFun ret1 args1 ref1) == (EnvFun ret2 args2 ref2) =
+    (length args1 == length args2) &&
+    and (zipWith (==) args1 args2) &&
+    (length ref1 == length ref2) &&
+    and (zipWith (==) ref1 ref2) &&
+    (ret1 == ret2)
   _ == _ = False
 
 toEnvType :: Type -> EnvType
@@ -39,14 +44,19 @@ toEnvType (TInt pos) = EnvInt
 toEnvType (TBool pos) = EnvBool
 toEnvType (TStr pos) = EnvStr
 toEnvType (TVoid pos) = EnvVoid
-toEnvType (TFun pos ret args) = EnvFun (toEnvType ret) (P.map toEnvType args)
+toEnvType (TFun pos ret args) = EnvFun (toEnvType ret) (P.map toEnvType args) []
 
 funToEnvType :: Type -> [Arg] -> EnvType
-funToEnvType ret args = EnvFun (toEnvType ret) (P.map (toEnvType . getArgType) args)
+funToEnvType ret args = EnvFun (toEnvType ret) (P.map (toEnvType . getArgType) args) (P.map getArgIsRef args)
 
 getArgType :: Arg -> Type
 getArgType (VArg _ t _) = t
 getArgType (RArg _ t _) = t
+
+getArgIsRef :: Arg -> Bool
+getArgIsRef VArg {} = False
+getArgIsRef RArg {} = True
+
 
 ---- Env ----
 
@@ -83,10 +93,10 @@ initEnv :: Env
 initEnv = Env (M.fromList defaults) Nothing False
 
 defaults :: [(Ident, EnvType)]
-defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt]),
-  (Ident "printBool", EnvFun EnvVoid [EnvBool]),
-  (Ident "printString", EnvFun EnvVoid [EnvStr]),
-  (Ident "error", EnvFun EnvVoid [])]
+defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt] [False]),
+  (Ident "printBool", EnvFun EnvVoid [EnvBool] [False]),
+  (Ident "printString", EnvFun EnvVoid [EnvStr] [False]),
+  (Ident "error", EnvFun EnvVoid [] [])]
 
 ---- Exception ----
 
@@ -96,6 +106,7 @@ data TypeCheckException =
   | NotAFunction BNFC'Position EnvType
   | BadArgumentTypes BNFC'Position [EnvType] [EnvType]
   | DuplicateDefinitionsException BNFC'Position
+  | ReferenceException BNFC'Position Ident
   | NoReturnException BNFC'Position
   | UnexpectedReturn BNFC'Position
   | NoMainException
@@ -124,6 +135,11 @@ instance Show TypeCheckException where
     ]
   show (DuplicateDefinitionsException pos) =
     "Two definitons are named the same at " ++ showBnfcPos pos
+  show (ReferenceException pos id) = concat [
+    "Expected variable at ", showBnfcPos pos,
+    " as this argument is passed by reference to the function ",
+    showIdent id
+    ]
   show (NoReturnException pos) =
     "No return found for a function at " ++ showBnfcPos pos
   show (UnexpectedReturn pos) =
@@ -137,7 +153,7 @@ instance Show TypeCheckException where
   show (DuplicateFunctionArgumentsException pos) =
     "Two arguments are named the same at " ++ showBnfcPos pos
   show (DefaultOverrideException pos) =
-    "Default function overriden at " ++ showBnfcPos pos 
+    "Default function overriden at " ++ showBnfcPos pos
 
 showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [

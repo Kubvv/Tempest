@@ -25,17 +25,28 @@ compareTypes pos et at1 at2 =
     compareType pos et at1
     compareType pos et at2
 
-checkFunction :: BNFC'Position -> EnvType -> [Expr] -> GetterMonad EnvType 
-checkFunction pos (EnvFun ret exTypes) args =
+checkRefs :: [Bool] -> [Expr] -> Ident -> GetterMonad ()
+checkRefs [] _ _ = return ()
+checkRefs _ [] _ = return ()
+checkRefs (_:bs) (EVar {}:es) id = checkRefs bs es id
+checkRefs (b:bs) (e:es) id = 
+  if b then
+    throwError (ReferenceException (exprToPos e) id)
+  else
+    checkRefs bs es id
+
+checkFunction :: BNFC'Position -> Ident -> EnvType -> [Expr] -> GetterMonad EnvType 
+checkFunction pos id (EnvFun ret exTypes ref) args =
   do
     acTypes <- mapM getType args
     let comparedArgs = zipWith (==) exTypes acTypes
     if and comparedArgs && (length acTypes == length exTypes) then
+      checkRefs ref args id >>
       return ret
     else
       throwError (BadArgumentTypes pos exTypes acTypes)
 
-checkFunction pos t _ =
+checkFunction pos _ t _ =
   throwError (NotAFunction pos t)
 
 compareTypeExpr :: BNFC'Position -> EnvType -> Expr -> GetterMonad ()
@@ -89,7 +100,7 @@ getType (EApp pos id args) =
   do
     env <- ask
     case gete env id of
-      Just t -> checkFunction pos t args
+      Just t -> checkFunction pos id t args
       Nothing -> throwError (UnexpectedToken pos id)
 
 --Expect bool

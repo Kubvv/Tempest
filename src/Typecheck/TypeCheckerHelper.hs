@@ -18,6 +18,21 @@ argToType :: Arg -> EnvType
 argToType (VArg _ t _) = toEnvType t
 argToType (RArg _ t _) = toEnvType t
 
+exprToPos :: Expr -> BNFC'Position
+exprToPos (EVar pos _) = pos
+exprToPos (ELitInt pos _) = pos
+exprToPos (ELitTrue pos) = pos
+exprToPos (ELitFalse pos) = pos
+exprToPos (EString pos _) = pos
+exprToPos (EApp pos _ _) = pos
+exprToPos (ENeg pos _) = pos
+exprToPos (ENot pos _) = pos
+exprToPos (EMul pos _ _ _) = pos
+exprToPos (EAdd pos _ _ _) = pos
+exprToPos (ERel pos _ _ _) = pos
+exprToPos (EAnd pos _ _)  = pos
+exprToPos (EOr pos _ _) = pos
+
 uniqueArgs :: [Arg] -> Bool
 uniqueArgs as = length as == length (nubfil $ P.map argToIdent as)
 
