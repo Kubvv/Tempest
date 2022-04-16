@@ -8,6 +8,8 @@ void main() {
     x = x + 1;
     printString(z);
     printInt(x);
+
+    printBool(true);
   }
 
   return;

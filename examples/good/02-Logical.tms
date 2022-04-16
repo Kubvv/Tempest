@@ -6,7 +6,7 @@ void main () {
   printBool(a);
   printBool(b);
 
-  boolean advancedLogical = (true || false) && (false || false);
+  boolean advancedLogical = (true || false) && (true || true);
 
   printBool(advancedLogical);
 

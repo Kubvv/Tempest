@@ -6,6 +6,7 @@ void main() {
     while (x > -1) {
       printInt(x);
       if (x == 3) {
+        printBool(true);
         return;
       }
       x++;

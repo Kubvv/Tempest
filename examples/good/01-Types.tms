@@ -8,5 +8,7 @@ void main () {
   printBool(y);
   printString(z);
 
+  printBool(true);
+
   return;
 }
