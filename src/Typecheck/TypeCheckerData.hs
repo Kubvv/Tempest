@@ -11,13 +11,15 @@ import Control.Monad.Reader (ReaderT)
 import Control.Monad.Identity (Identity)
 
 ---- EnvType ----
+-- EnvType is a modified version of Type from AbsTempest, desgined to be the 
+-- value of typechecker environment map.
 
 data EnvType =
   EnvInt
   | EnvBool
   | EnvStr
   | EnvVoid
-  | EnvFun EnvType [EnvType] [Bool]
+  | EnvFun EnvType [EnvType] [Bool] -- <Return type> <Argument types> <Is argument passed by ref> 
 
 instance Show EnvType where
   show EnvInt = "int"
@@ -46,9 +48,11 @@ toEnvType (TStr pos) = EnvStr
 toEnvType (TVoid pos) = EnvVoid
 toEnvType (TFun pos ret args) = EnvFun (toEnvType ret) (P.map toEnvType args) []
 
+--An easier way of casting a function type to EnvType.
 funToEnvType :: Type -> [Arg] -> EnvType
 funToEnvType ret args = EnvFun (toEnvType ret) (P.map (toEnvType . getArgType) args) (P.map getArgIsRef args)
 
+--Helper functions used by funToEnvType.
 getArgType :: Arg -> Type
 getArgType (VArg _ t _) = t
 getArgType (RArg _ t _) = t
@@ -59,6 +63,10 @@ getArgIsRef RArg {} = True
 
 
 ---- Env ----
+-- Environment used by typechecker. typeMap is a map that holds the types of identifiers.
+-- expectedReturnType is used by returns in functions to check wheter the return type matches
+-- with the declared one. isReturn is used by function declaration to see if there is any return
+-- statement used in function's block.
 
 data Env = Env {
   typeMap :: M.Map Ident EnvType,
@@ -66,6 +74,7 @@ data Env = Env {
   isReturn :: Bool
 }
 
+-- Getters
 gete :: Env -> Ident -> Maybe EnvType
 gete env s = M.lookup s (typeMap env)
 
@@ -78,6 +87,7 @@ getir = isReturn
 pute :: Env -> Ident -> EnvType -> Env
 pute (Env tm rt is) id t = Env (M.insert id t tm) rt is
 
+-- Setters
 puteArgs :: Env -> [(Ident, EnvType)] -> Env
 puteArgs env [] = env
 puteArgs env ((id, t):as) = puteArgs newEnv as
@@ -89,6 +99,7 @@ putrt (Env tm rt is) nt = Env tm nt is
 putir :: Env -> Bool -> Env
 putir (Env tm rt is) = Env tm rt
 
+-- Starting environment, consisting of default functions (prints, error).
 initEnv :: Env
 initEnv = Env (M.fromList defaults) Nothing False
 
@@ -99,6 +110,8 @@ defaults = [(Ident "printInt", EnvFun EnvVoid [EnvInt] [False]),
   (Ident "error", EnvFun EnvVoid [] [])]
 
 ---- Exception ----
+-- Exception type is just a nice way of packing all possible typechecker exceptions to one 
+-- place. Almost every (besides NoMain) has a position indicating where the exception happened.
 
 data TypeCheckException =
   BadType BNFC'Position EnvType EnvType
@@ -155,6 +168,7 @@ instance Show TypeCheckException where
   show (DefaultOverrideException pos) =
     "Default function overriden at " ++ showBnfcPos pos
 
+-- Shows for unordinary types.
 showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
   "line ", show r,
@@ -166,10 +180,15 @@ showIdent :: Ident -> String
 showIdent (Ident s) = s
 
 ---- CheckerMonad ----
+-- CheckerMonad is used in evaluating all syntax types, besides the expr.
+-- Because of many data types that uses this monad, it also has a class associated with it.
+
 type CheckerMonad = StateT Env (ExceptT TypeCheckException Identity) ()
 
 class Checker a where
   checkType :: a -> CheckerMonad
 
 ---- GetterMonad ----
+-- Getter monad is used solely by expr syntax type.
+
 type GetterMonad = ReaderT Env (ExceptT TypeCheckException Identity)

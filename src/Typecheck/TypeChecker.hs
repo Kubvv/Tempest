@@ -14,6 +14,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 
+-- Basic checks.
 compareType :: BNFC'Position -> EnvType -> EnvType -> GetterMonad ()
 compareType pos et at =
   do
@@ -26,6 +27,19 @@ compareTypes pos et at1 at2 =
     compareType pos et at1
     compareType pos et at2
 
+checkResult :: Either TypeCheckException () -> CheckerMonad
+checkResult et = case et of
+  Right _ -> return ()
+  Left ex -> throwError ex
+
+checkCondition :: Bool -> TypeCheckException -> CheckerMonad
+checkCondition b ex =
+  do
+    unless b $
+      throwError ex
+
+-- Checks if all arguments that are passed by reference are variables.
+-- If not checkRefs throws an appropriate exception.
 checkRefs :: [Bool] -> [Expr] -> Ident -> GetterMonad ()
 checkRefs [] _ _ = return ()
 checkRefs _ [] _ = return ()
@@ -36,6 +50,8 @@ checkRefs (b:bs) (e:es) id =
   else
     checkRefs bs es id
 
+-- Checks if given function application matches the definition, aka
+-- it checks the number of args, their types and reference passes.
 checkFunction :: BNFC'Position -> Ident -> EnvType -> [Expr] -> GetterMonad EnvType 
 checkFunction pos id (EnvFun ret exTypes ref) args =
   do
@@ -49,6 +65,10 @@ checkFunction pos id (EnvFun ret exTypes ref) args =
 
 checkFunction pos _ t _ =
   throwError (NotAFunction pos t)
+ 
+ -- Runs comparator for an expected type (EnvType) and actual type (which is evaluated from expr).
+runComparator :: BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
+runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
 
 compareTypeExpr :: BNFC'Position -> EnvType -> Expr -> GetterMonad ()
 compareTypeExpr pos et e =
@@ -57,21 +77,7 @@ compareTypeExpr pos et e =
     when (at /= et) $
       throwError (BadType pos et at)
 
-runComparator :: BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
-runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
-
-checkResult :: Either TypeCheckException () -> CheckerMonad
-checkResult et = case et of
-  Right _ -> return ()
-  Left ex -> throwError ex
-
-checkCondition :: Bool -> TypeCheckException -> CheckerMonad
-checkCondition b ex =
-  do
-    unless b $
-      throwError ex
-
---Check if main exists and is a zero argument void function
+--Check if main exists and is a zero argument void function.
 checkMain :: Maybe Def -> CheckerMonad
 checkMain Nothing = throwError NoMainException
 checkMain (Just (FnDef pos rt _ args _)) = do
@@ -79,7 +85,7 @@ checkMain (Just (FnDef pos rt _ args _)) = do
   checkCondition (ret == EnvVoid && P.null args) (WrongMainDefinitionException pos)
 checkMain (Just _) = return ()
 
---Checks for dupliactes in definition naming
+--Checks for dupliactes in definition naming.
 checkDefs :: Int -> [Def] -> Set Ident -> CheckerMonad
 checkDefs _ [] _ = return ()
 checkDefs es (d:ds) set = if es == S.size newSet 
@@ -92,7 +98,7 @@ checkDefs es (d:ds) set = if es == S.size newSet
 
 getType :: Expr -> GetterMonad EnvType 
 
---Vars
+--Vars.
 getType (EVar pos id) =
   do
     env <- ask
@@ -100,13 +106,13 @@ getType (EVar pos id) =
       Just t -> return t
       Nothing -> throwError (UnexpectedToken pos id)
 
---Trivial
+--Trivial.
 getType (ELitFalse _) = return EnvBool
 getType (ELitTrue _) = return EnvBool
 getType (ELitInt _ _) = return EnvInt
 getType (EString _ _) = return EnvStr
 
---Function application
+--Function application.
 getType (EApp pos id args) =
   do
     env <- ask
@@ -114,7 +120,7 @@ getType (EApp pos id args) =
       Just t -> checkFunction pos id t args
       Nothing -> throwError (UnexpectedToken pos id)
 
---Expect bool
+--Expect bool.
 getType (ENot pos e) =
   do
     evType <- getType e
@@ -135,7 +141,7 @@ getType (EOr pos e1 e2) =
     compareTypes pos EnvBool evType1 evType2
     return EnvBool
 
---Expect int
+--Expect int.
 getType (ENeg pos e) =
   do
     evType <- getType e
@@ -176,7 +182,7 @@ instance Checker Program where
 
 instance Checker Def where
 
-  --Variable definition
+  --Variable definition.
   checkType (GlDef pos t id e) =
     do
       env <- get
@@ -185,7 +191,7 @@ instance Checker Def where
       checkResult result
       put (pute env id ext)
 
-  --Function definition
+  --Function definition.
   checkType (FnDef pos rt id args block) =
     do
       unless (uniqueArgs args) $
@@ -207,17 +213,17 @@ instance Checker Block where
 
 instance Checker Stmt where
 
-  --Empty statement
+  --Empty statement.
   checkType (SEmpty _) = return ()
 
-  --Block
+  --Block.
   checkType (SBStmt _ block) =
     do
       env <- get
       checkType block
       put env
 
-  --Init and Assignment
+  --Init and Assignment.
   checkType (SInit _ def) = checkType def
 
   checkType (SAss pos id e) =
@@ -227,7 +233,7 @@ instance Checker Stmt where
         Just et -> checkResult $ runComparator pos et e env
         Nothing -> throwError (UnexpectedToken pos id)
 
-  --Increment and Decrement
+  --Increment and Decrement.
   checkType (SIncr pos id) =
     do
       env <- get
@@ -242,7 +248,7 @@ instance Checker Stmt where
         Just at -> checkCondition (at == EnvInt) (BadType pos EnvInt at)
         Nothing -> throwError (UnexpectedToken pos id)
 
-  --Returns
+  --Returns.
   checkType (SRet pos e) =
     do
       env <- get
@@ -259,7 +265,7 @@ instance Checker Stmt where
         Nothing -> throwError (UnexpectedReturn pos)
       put $ putir env True
 
-  --Conditionals
+  --Conditionals.
   checkType (SCond pos cond block) =
     do
       env <- get
@@ -273,19 +279,20 @@ instance Checker Stmt where
       checkType block1
       checkType block2
 
-  --While
+  --While.
   checkType (SWhile pos cond block) =
     do
       env <- get
       checkResult $ runComparator pos EnvBool cond env
       checkType block
 
-  --Expression
+  --Expression.
   checkType (SExp pos e) =
     do
       env <- get
       checkResult $ runComparator pos EnvVoid e env
 
+-- Runs the type checker.
 runTypeCheck :: Program -> Either TypeCheckException ()
 runTypeCheck program =
   runExcept $ evalStateT (checkType program) initEnv
