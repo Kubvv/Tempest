@@ -227,7 +227,8 @@ instance Interpreter Expr where
       let x2 = fromJust $ extractBool r2
       return $ RBool ((||) x1 x2)
 
-
+-- Statements can be only executed when they're before the return statement (that occured).
+-- Hence this function is a wrapper that allows the execution of statement if return value in mem is RNothing.
 interpretIfNotRet :: InterpreterMonad -> InterpreterMonad
 interpretIfNotRet inter = do
   mem <- get
@@ -237,6 +238,9 @@ interpretIfNotRet inter = do
   else
     inter
 
+-- Function used to setup the environment for a function stored in memory.
+-- After the function finish, it returns the environment from before the call and returns
+-- the function result.
 interpretFromEnvironment :: BNFC'Position -> Ident -> [Expr] -> InterpreterMonad
 interpretFromEnvironment pos id args =
   do
@@ -258,6 +262,7 @@ interpretFromEnvironment pos id args =
     modify $ putReturn RNothing
     return result
 
+-- Runs the interpreter.
 runInterpreter :: Program -> IO (Either InterpretException Result)
 runInterpreter program =
   runExceptT $ evalStateT (interpret program) emptyState

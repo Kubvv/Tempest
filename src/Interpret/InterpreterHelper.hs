@@ -41,6 +41,7 @@ isVariable :: Expr -> Bool
 isVariable (EVar _ _) = True
 isVariable _ = False
 
+-- Getter for syntax operators.
 class ArithmeticOperator a where
 
   getArthOperator :: a -> (Integer -> Integer -> Integer)
@@ -68,10 +69,13 @@ isDiv :: MulOp -> Bool
 isDiv (ODiv _) = True
 isDiv _ = False
 
+-- Get the location of passed argument (function application).
 getArgLoc :: Env -> Expr -> Maybe Loc
 getArgLoc env (EVar _ id) = Just (getLoc id env)
 getArgLoc _ _ = Nothing
 
+-- Modifies the environment so that it is correctly wired with all arguments,
+-- both the one passed by value and reference.
 putArgs :: [Result] -> [Maybe Loc] -> [Arg] -> InterpreterMonad
 putArgs [] _ _ = return RNothing
 putArgs (r:rs) (l:ls) (a:as) =
@@ -96,6 +100,7 @@ putArg r _ (VArg _ _ id) =
     put $ putS id r mem
     return RNothing
 
+-- Finds the main function and returns its block of statements.
 findMainBlock :: [Def] -> Maybe Block
 findMainBlock [] = Nothing
 findMainBlock ((FnDef _ _ (Ident "main") _ b):ds) = Just b

@@ -11,6 +11,8 @@ import Control.Monad.State
 
 
 ---- Exception ----
+-- Exception type is just a nice way of packing all possible interpreter exceptions to one 
+-- place. All of them have a position indicating where given exception happened.
 
 data InterpretException =
   ArithmeticException BNFC'Position 
@@ -33,6 +35,7 @@ instance Show InterpretException where
   show (ErrorMethodCalledException pos) =
     "Error method was called at " ++ showBnfcPos pos
 
+-- Shows for unordinary types.
 showBnfcPos :: BNFC'Position -> String
 showBnfcPos (Just (r, c)) = concat [
   "line ", show r,
@@ -43,7 +46,13 @@ showBnfcPos Nothing = "error while printing the exception position"
 showIdent :: Ident -> String
 showIdent (Ident s) = s
 
----- Interpreter's data ----
+---- Interpreter's data (Mem) ----
+-- Mem is used by interpreter for storing data. It uses a special type Loc, which is a
+-- bridge between identifier and a result. Loc introduction allows for detaching the environment,
+-- while keeping the state of the store. freeloc is used internally to keep track of the smallest
+-- location number that is free. returnR decribes the result value of a return, which is later used
+-- by function application to return this value. When returnR != RNothing, that is an indicator that
+-- return occured and that next statements up to reaching the end of the function should be ignored.
 
 type Loc = Integer
 type Env = M.Map Ident Loc
@@ -63,15 +72,15 @@ emptyState = State {
   returnR = RNothing
 }
 
--- State and reader handling
-putEnv :: Env -> Mem -> Mem
-putEnv envi (State _ str fl rv) = State envi str fl rv
-
+-- State handling
 getLoc :: Ident -> Env -> Loc
 getLoc id env = fromJust $ M.lookup id env
 
 getRes :: Loc -> Store -> Result
 getRes l str = fromJust $ M.lookup l str
+
+putEnv :: Env -> Mem -> Mem
+putEnv envi (State _ str fl rv) = State envi str fl rv
 
 putLoc :: Ident -> Loc -> Env -> Env
 putLoc = M.insert
@@ -82,6 +91,7 @@ putRes = M.insert
 newloc :: Mem -> (Loc, Mem)
 newloc (State env str fl rv) = (fl, State env str (fl+1) rv)
 
+-- Getter, putter and updater for whole state
 getS :: Ident -> Mem -> Result
 getS id (State env str _ _) = getRes (getLoc id env) str
 
@@ -109,6 +119,8 @@ isReturn (State _ _ _ RNothing) = False
 isReturn _ = True
 
 ---- Result ----
+-- Result is a modified Type from AbsTempest, desgined to be the 
+-- value of interpreter environment map.
 
 data Result =
   RInt Integer
@@ -153,6 +165,8 @@ decrResult (RInt i) = Just $ RInt $ i-1
 decrResult _ = Nothing
 
 ---- InterpreterMonad ----
+-- InterpreterMonad is used in evaluating all syntax types
+-- Because of many data types that uses this monad, it also has a class associated with it.
 
 type InterpreterMonad = StateT Mem (ExceptT InterpretException IO) Result
 
