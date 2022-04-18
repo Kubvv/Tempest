@@ -16,15 +16,15 @@ import Control.Monad.State
 
 data InterpretException =
   ArithmeticException BNFC'Position 
-  | NotImplementedException BNFC'Position String
+  | NotImplementedException BNFC'Position Ident
   | ErrorMethodCalledException BNFC'Position
   | NoReturnEncounteredException BNFC'Position Ident
 
 instance Show InterpretException where
   show (ArithmeticException pos) =
     "Division by zero at " ++ showBnfcPos pos
-  show (NotImplementedException pos s) = concat [
-    "Function ", s, 
+  show (NotImplementedException pos id) = concat [
+    "Function ", showIdent id, 
     " at ", showBnfcPos pos,
     " is declared as default, but it doesn't have a default implementation"
     ]
@@ -120,7 +120,7 @@ isReturn _ = True
 
 ---- Result ----
 -- Result is a modified Type from AbsTempest, desgined to be the 
--- value of interpreter environment map.
+-- value of interpreter state map.
 
 data Result =
   RInt Integer

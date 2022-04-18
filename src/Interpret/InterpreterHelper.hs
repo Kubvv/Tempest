@@ -20,10 +20,10 @@ defaults :: [[Char]]
 defaults = prints ++ errors
 
 interpretDefault :: BNFC'Position -> Ident -> [Result]-> InterpreterMonad
-interpretDefault pos (Ident s) args
+interpretDefault pos id@(Ident s) args
   | s `elem` prints = interpretDefaultPrint $ head args
   | s `elem` errors = interpretDefaultError pos
-  | otherwise = throwError $ NotImplementedException pos s
+  | otherwise = throwError $ NotImplementedException pos id
 
 interpretDefaultPrint :: Result -> InterpreterMonad
 interpretDefaultPrint x =
