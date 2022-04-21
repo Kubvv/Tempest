@@ -69,3 +69,9 @@ findByIdent (fn@(FnDef _ _ (Ident id) _ _):ds) =
   else
     findByIdent ds
 findByIdent (d:ds) = findByIdent ds
+
+-- Checks if relational operator is an equality operator.
+isEqOperator :: RelOp -> Bool
+isEqOperator (OEq _) = True
+isEqOperator (ONe _) = True
+isEqOperator _ = False

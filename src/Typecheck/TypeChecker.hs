@@ -162,12 +162,15 @@ getType (EAdd pos e1 _ e2) =
     compareTypes pos EnvInt evType1 evType2
     return EnvInt
 
-getType (ERel pos e1 _ e2) =
+getType (ERel pos e1 op e2) =
   do
     evType1 <- getType e1
     evType2 <- getType e2
-    compareTypes pos EnvInt evType1 evType2
-    return EnvBool
+    if isEqOperator op then
+      compareType pos evType1 evType2
+    else
+      compareTypes pos EnvInt evType1 evType2
+    return EnvBool 
 
 --Expect String.
 getType (ECon pos e1 _ e2) =
@@ -194,8 +197,7 @@ instance Checker Def where
     do
       env <- get
       let ext = toEnvType t
-      let result = runComparator pos ext e env
-      checkResult result
+      checkResult $ runComparator pos ext e env
       put (pute env id ext)
 
   --Function definition.
