@@ -1,0 +1,15 @@
+void main() {
+  int x = 1;
+  
+  void main(int x) {
+    printBool(x == 2);
+    return;
+  }
+  
+  int x = 0;
+  printBool(x == 0);
+
+  main(2);
+  
+  return;
+}
