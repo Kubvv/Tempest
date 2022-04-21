@@ -155,6 +155,14 @@ extractFun :: Result -> Maybe ([Arg], Block, Env)
 extractFun (RFun args block env) = Just (args, block, env)
 extractFun _ = Nothing
 
+isReturnInt :: Result -> Bool
+isReturnInt (RInt _) = True
+isReturnInt _ = False
+
+isReturnBool :: Result -> Bool
+isReturnBool (RBool _) = True
+isReturnBool _ = False
+
 --Increment/decrement integer by 1 or do nothing
 incrResult :: Result -> Maybe Result
 incrResult (RInt i) = Just $ RInt $ i+1

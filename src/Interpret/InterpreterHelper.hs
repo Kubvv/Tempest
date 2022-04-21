@@ -65,9 +65,19 @@ getCompOperator (OGe _) = (>=)
 getCompOperator (OEq _) = (==)
 getCompOperator (ONe _) = (/=)
 
+getEqOperator :: Eq a => RelOp -> Maybe (a -> a -> Bool)
+getEqOperator (OEq _) = Just (==)
+getEqOperator (ONe _) = Just (/=)
+getEqOperator _ = Nothing
+
 isDiv :: MulOp -> Bool
 isDiv (ODiv _) = True
 isDiv _ = False
+
+isEqOperator :: RelOp -> Bool
+isEqOperator (OEq _) = True
+isEqOperator (ONe _) = True
+isEqOperator _ = False
 
 getConOperator :: ConOp -> (String -> String -> String)
 getConOperator (OCon _) = (++)

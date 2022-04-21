@@ -202,13 +202,16 @@ instance Interpreter Expr where
 
   --Comparison
   interpret (ERel _ e1 op e2) =
-    do
-      let fun = getCompOperator op
-      r1 <- interpret e1
-      r2 <- interpret e2
-      let x1 = fromJust $ extractInt r1
-      let x2 = fromJust $ extractInt r2
-      return $ RBool (fun x1 x2)
+    if isEqOperator op then
+      interpretEquals e1 op e2
+    else
+      do
+        r1 <- interpret e1
+        r2 <- interpret e2
+        let fun = getCompOperator op
+        let x1 = fromJust $ extractInt r1
+        let x2 = fromJust $ extractInt r2
+        return $ RBool (fun x1 x2)
 
   --Logic
   interpret (EAnd _ e1 e2) =
@@ -271,6 +274,18 @@ interpretFromEnvironment pos id args =
     modify $ putEnv envi
     modify $ putReturn RNothing
     return result
+
+interpretEquals :: Expr -> RelOp -> Expr -> InterpreterMonad
+interpretEquals e1 op e2 =
+  do
+    r1 <- interpret e1
+    r2 <- interpret e2
+    if isReturnInt r1 then
+      return $ RBool $ (fromJust $ getEqOperator op) (extractInt r1) (extractInt r2)
+    else if isReturnBool r1 then
+      return $ RBool $ (fromJust $ getEqOperator op) (extractBool r1) (extractBool r2)
+    else
+      return $ RBool $ (fromJust $ getEqOperator op) (extractString r1) (extractString r2)
 
 -- Runs the interpreter.
 runInterpreter :: Program -> IO (Either InterpretException Result)
