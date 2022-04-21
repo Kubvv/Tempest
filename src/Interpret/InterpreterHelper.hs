@@ -69,6 +69,9 @@ isDiv :: MulOp -> Bool
 isDiv (ODiv _) = True
 isDiv _ = False
 
+getConOperator :: ConOp -> (String -> String -> String)
+getConOperator (OCon _) = (++)
+
 -- Get the location of passed argument (function application).
 getArgLoc :: Env -> Expr -> Maybe Loc
 getArgLoc env (EVar _ id) = Just (getLoc id env)

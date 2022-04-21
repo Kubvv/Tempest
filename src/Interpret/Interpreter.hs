@@ -227,6 +227,16 @@ instance Interpreter Expr where
       let x2 = fromJust $ extractBool r2
       return $ RBool ((||) x1 x2)
 
+  --Concatenation
+  interpret (ECon _ e1 op e2) =
+    do
+      let fun = getConOperator op
+      r1 <- interpret e1
+      r2 <- interpret e2
+      let x1 = fromJust $ extractString r1
+      let x2 = fromJust $ extractString r2
+      return $ RStr (fun x1 x2)
+
 -- Statements can be only executed when they're before the return statement (that occured).
 -- Hence this function is a wrapper that allows the execution of statement if return value in mem is RNothing.
 interpretIfNotRet :: InterpreterMonad -> InterpreterMonad
