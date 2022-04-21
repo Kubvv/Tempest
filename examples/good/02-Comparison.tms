@@ -7,12 +7,24 @@ void main () {
   boolean e = 1 == 11; 
   boolean f = 12 != 3;
 
+  boolean g = false == true;
+  boolean h = false != true;
+
+  boolean i = "xxx" == "xxx";
+  boolean j = "xyz" == "";
+
   printBool(a);
   printBool(b);
   printBool(c);
   printBool(d);
   printBool(e);
   printBool(f);
+
+  printBool(g);
+  printBool(h);
+
+  printBool(i);
+  printBool(j);
 
   boolean advancedCmp = (13 > 2 && 2 < 14 && 5 >= 3 && 8 <= 11) || (1 == 1 && 1 != 1);
 

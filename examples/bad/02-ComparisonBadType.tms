@@ -1,0 +1,11 @@
+void main () {
+  
+  string x = "xxx";
+  boolean b = true;
+
+  if (b != x) {
+    printString("!!!");
+  }
+
+  return;
+}
