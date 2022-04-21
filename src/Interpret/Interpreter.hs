@@ -276,16 +276,18 @@ interpretFromEnvironment pos id args =
     return result
 
 interpretEquals :: Expr -> RelOp -> Expr -> InterpreterMonad
-interpretEquals e1 op e2 =
+interpretEquals e1 (OEq _) e2 =
   do
     r1 <- interpret e1
     r2 <- interpret e2
-    if isReturnInt r1 then
-      return $ RBool $ (fromJust $ getEqOperator op) (extractInt r1) (extractInt r2)
-    else if isReturnBool r1 then
-      return $ RBool $ (fromJust $ getEqOperator op) (extractBool r1) (extractBool r2)
-    else
-      return $ RBool $ (fromJust $ getEqOperator op) (extractString r1) (extractString r2)
+    return $ RBool $ r1 == r2
+interpretEquals e1 (ONe _) e2 =
+  do
+    r1 <- interpret e1
+    r2 <- interpret e2
+    return $ RBool $ r1 /= r2
+interpretEquals _ _ _ =
+  return RNothing
 
 -- Runs the interpreter.
 runInterpreter :: Program -> IO (Either InterpretException Result)

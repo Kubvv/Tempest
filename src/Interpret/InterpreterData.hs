@@ -138,6 +138,12 @@ instance Show Result where
   show RVoid = "Void"
   show RNothing = "Nothing"
 
+instance Eq Result where
+  (RInt x1) == (RInt x2) = x1 == x2
+  (RBool x1) == (RBool x2) = x1 == x2
+  (RStr x1) == (RStr x2) = x1 == x2
+  _ == _ = False
+
 --Unpack the result to get values inside
 extractInt :: Result -> Maybe Integer
 extractInt (RInt i) = Just i
