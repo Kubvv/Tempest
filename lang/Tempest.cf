@@ -50,15 +50,17 @@ separator  Type ",";
 
 ----< Expressions >----
 
-EVar.      Expr6 ::= Ident;
-ELitInt.   Expr6 ::= Integer;
-ELitTrue.  Expr6 ::= "true";
-ELitFalse. Expr6 ::= "false";
-EApp.      Expr6 ::= Ident "(" [Expr] ")";
-EString.   Expr6 ::= String;
+EVar.      Expr7 ::= Ident;
+ELitInt.   Expr7 ::= Integer;
+ELitTrue.  Expr7 ::= "true";
+ELitFalse. Expr7 ::= "false";
+EApp.      Expr7 ::= Ident "(" [Expr] ")";
+EString.   Expr7 ::= String;
 
-ENeg.       Expr5 ::= "-" Expr6;
-ENot.       Expr5 ::= "!" Expr6;
+ENeg.      Expr6 ::= "-" Expr7;
+ENot.      Expr6 ::= "!" Expr7;
+
+ECon.      Expr5 ::= Expr5 ConOp Expr6;
 
 EMul.      Expr4 ::= Expr4 MulOp Expr5;
 EAdd.      Expr3 ::= Expr3 AddOp Expr4;
@@ -67,7 +69,7 @@ ERel.      Expr2 ::= Expr2 RelOp Expr3;
 EAnd.      Expr1 ::= Expr2 "&&" Expr1;
 EOr.       Expr ::= Expr1 "||" Expr;
 
-coercions  Expr 6;
+coercions  Expr 7;
 separator  Expr ",";
 
 ----< Operators >----
@@ -85,6 +87,8 @@ OGr.       RelOp ::= ">";
 OGe.       RelOp ::= ">=";
 OEq.       RelOp ::= "==";
 ONe.       RelOp ::= "!=";
+
+OCon.      ConOp ::= "+++";
 
 ----< Comments >----
 
