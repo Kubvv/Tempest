@@ -1,0 +1,9 @@
+void main () {
+  
+  string x = "xxx";
+  boolean y = true;
+
+  string xy = x +++ y;
+
+  return;
+}

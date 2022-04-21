@@ -1,0 +1,12 @@
+void main () {
+  
+  string x = "xxx";
+  string y = "yyy";
+
+  string xzy = x +++ "zzz" +++ y;
+
+  printString(xzy);
+  //printBool(xzy == "xxxzzzyyy");
+
+  return;
+}
