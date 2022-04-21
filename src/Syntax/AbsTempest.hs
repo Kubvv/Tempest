@@ -63,10 +63,11 @@ data Expr' a
     | ELitInt a Integer
     | ELitTrue a
     | ELitFalse a
-    | EString a String
     | EApp a Ident [Expr' a]
+    | EString a String
     | ENeg a (Expr' a)
     | ENot a (Expr' a)
+    | ECon a (Expr' a) (ConOp' a) (Expr' a)
     | EMul a (Expr' a) (MulOp' a) (Expr' a)
     | EAdd a (Expr' a) (AddOp' a) (Expr' a)
     | ERel a (Expr' a) (RelOp' a) (Expr' a)
@@ -84,6 +85,10 @@ data MulOp' a = OMul a | ODiv a | OMod a
 
 type RelOp = RelOp' BNFC'Position
 data RelOp' a = OLs a | OLe a | OGr a | OGe a | OEq a | ONe a
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type ConOp = ConOp' BNFC'Position
+data ConOp' a = OCon a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 newtype Ident = Ident String
@@ -155,6 +160,7 @@ instance HasPosition Expr where
     EString p _ -> p
     ENeg p _ -> p
     ENot p _ -> p
+    ECon p _ _ _ -> p
     EMul p _ _ _ -> p
     EAdd p _ _ _ -> p
     ERel p _ _ _ -> p
@@ -180,4 +186,8 @@ instance HasPosition RelOp where
     OGe p -> p
     OEq p -> p
     ONe p -> p
+
+instance HasPosition ConOp where
+  hasPosition = \case
+    OCon p -> p
 
