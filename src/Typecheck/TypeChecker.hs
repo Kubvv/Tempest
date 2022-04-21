@@ -169,6 +169,13 @@ getType (ERel pos e1 _ e2) =
     compareTypes pos EnvInt evType1 evType2
     return EnvBool
 
+--Expect String.
+getType (ECon pos e1 _ e2) =
+  do
+    evType1 <- getType e1
+    evType2 <- getType e2
+    compareTypes pos EnvStr evType1 evType2
+    return EnvStr 
 
 instance Checker Program where
 

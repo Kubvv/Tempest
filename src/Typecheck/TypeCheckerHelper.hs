@@ -29,6 +29,7 @@ exprToPos (EAdd pos _ _ _) = pos
 exprToPos (ERel pos _ _ _) = pos
 exprToPos (EAnd pos _ _)  = pos
 exprToPos (EOr pos _ _) = pos
+exprToPos (ECon pos _ _ _) = pos
 
 defToIdent :: Def -> Ident
 defToIdent (FnDef _ _ id _ _) = id
