@@ -6,7 +6,7 @@ void main () {
   string xzy = x +++ "zzz" +++ y;
 
   printString(xzy);
-  //printBool(xzy == "xxxzzzyyy");
+  printBool(xzy == "xxxzzzyyy");
 
   return;
 }

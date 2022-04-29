@@ -10,7 +10,7 @@ void main() {
     printInt(x);
   }
   printInt(x);
-
   printBool(x == 0);
+
   return;
 }
