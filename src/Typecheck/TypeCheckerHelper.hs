@@ -39,6 +39,9 @@ defToPos :: Def -> BNFC'Position
 defToPos (FnDef pos _ _ _ _) = pos
 defToPos (GlDef pos _ _ _) = pos
 
+blockToStmts :: Block -> [Stmt]
+blockToStmts (BBlock _ stmts) = stmts
+
 -- Checks if all arguments have unique names.
 uniqueArgs :: [Arg] -> Bool
 uniqueArgs as = length as == length (nubfil $ P.map argToIdent as)

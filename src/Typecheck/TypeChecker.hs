@@ -88,13 +88,24 @@ checkMain (Just _) = return ()
 --Checks for dupliactes in definition naming.
 checkDefs :: Int -> [Def] -> Set Ident -> CheckerMonad
 checkDefs _ [] _ = return ()
-checkDefs es (d:ds) set = if es == S.size newSet 
-  then
+checkDefs es (d:ds) set = if es == S.size newSet then
     checkDefs (es + 1) ds newSet
   else
     throwError (DuplicateDefinitionsException (defToPos d))
   where
     newSet = S.insert (defToIdent d) set
+
+--Checks if some variable is defined twice in the same block.
+checkInitsRedef :: [Stmt] -> Set Ident -> CheckerMonad
+checkInitsRedef [] _ = return ()
+checkInitsRedef ((SInit pos def):stmts) set = 
+  do
+    let id = defToIdent def
+    if S.member id set then
+      throwError (RedefinitionException pos id)
+    else
+      checkInitsRedef stmts (S.insert id set)
+checkInitsRedef (_:stmts) set = checkInitsRedef stmts set
 
 getType :: Expr -> GetterMonad EnvType 
 
@@ -197,6 +208,8 @@ instance Checker Def where
     do
       env <- get
       let ext = toEnvType t
+      when (ext == EnvVoid) $
+        throwError (VoidVarDefinitionException pos)
       checkResult $ runComparator pos ext e env
       put (pute env id ext)
 
@@ -205,20 +218,25 @@ instance Checker Def where
     do
       unless (uniqueArgs args) $
         throwError (DuplicateFunctionArgumentsException pos)
+      let stmts = blockToStmts block
+      checkInitsRedef stmts (S.insert id (S.fromList (P.map argToIdent args)))
       env <- get
       put $ pute env id (funToEnvType rt args)
       newEnv <- get
       put $ puteArgs newEnv (argTypes args)
       beforeEnv <- get
       put $ putrt beforeEnv (Just (toEnvType rt))
-      checkType block
+      mapM_ checkType stmts
       afterEnv <- get
       checkCondition (isReturn afterEnv) (NoReturnException pos)
       put newEnv
 
 instance Checker Block where
 
-  checkType (BBlock pos stmts) = mapM_ checkType stmts
+  checkType (BBlock _ stmts) = 
+    do
+      checkInitsRedef stmts S.empty
+      mapM_ checkType stmts
 
 instance Checker Stmt where
 

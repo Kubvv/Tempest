@@ -126,6 +126,8 @@ data TypeCheckException =
   | WrongMainDefinitionException BNFC'Position
   | DuplicateFunctionArgumentsException BNFC'Position
   | DefaultOverrideException BNFC'Position
+  | RedefinitionException BNFC'Position Ident
+  | VoidVarDefinitionException BNFC'Position
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -167,6 +169,11 @@ instance Show TypeCheckException where
     "Two arguments are named the same at " ++ showBnfcPos pos
   show (DefaultOverrideException pos) =
     "Default function overriden at " ++ showBnfcPos pos
+  show (RedefinitionException pos id) = concat [
+    "Redefinition of identifier ", showIdent id, " at ", showBnfcPos pos
+    ]
+  show (VoidVarDefinitionException pos) =
+    "Variable has type void at " ++ showBnfcPos pos
 
 -- Shows for unordinary types.
 showBnfcPos :: BNFC'Position -> String
