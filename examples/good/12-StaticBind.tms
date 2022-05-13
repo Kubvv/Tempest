@@ -5,9 +5,13 @@ void main() {
     return x;
   }
 
-  int x = 2;
+  int z(int x) {
+    return x;
+  }
+
   printInt(y());
-  printBool(y() == 1);
+  printInt(z(5));
+  printBool(y() == 1 && z(5) == 5);
 
   return;
 }

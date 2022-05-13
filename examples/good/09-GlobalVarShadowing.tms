@@ -1,0 +1,19 @@
+int x = 1;
+boolean t = true;
+string z = "print me!";
+
+void f(int x, boolean t) {
+  printBool(x == 3 && !t);
+  return;
+}
+
+void main() {
+
+  if (t) {
+    f(3, false);
+  }
+
+  printBool(x == 1 && t);
+
+  return;
+}

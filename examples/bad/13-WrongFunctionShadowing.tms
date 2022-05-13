@@ -6,10 +6,6 @@ void main() {
     return;
   }
   
-  int x = 0;
-  printBool(x == 0);
-
   main(2);
-  
   return;
 }
