@@ -127,7 +127,7 @@ data TypeCheckException =
   | DuplicateFunctionArgumentsException BNFC'Position
   | DefaultOverrideException BNFC'Position
   | RedefinitionException BNFC'Position Ident
-  | VoidVarDefinitionException BNFC'Position
+  | WrongTypeDefinitionException BNFC'Position Ident
 
 instance Show TypeCheckException where
   show (BadType pos exp act) = concat [
@@ -172,8 +172,9 @@ instance Show TypeCheckException where
   show (RedefinitionException pos id) = concat [
     "Redefinition of identifier ", showIdent id, " at ", showBnfcPos pos
     ]
-  show (VoidVarDefinitionException pos) =
-    "Variable has type void at " ++ showBnfcPos pos
+  show (WrongTypeDefinitionException pos id) = concat [
+    "Variable ", showIdent id, " is not int, boolean or string at ", showBnfcPos pos
+    ]
 
 -- Shows for unordinary types.
 showBnfcPos :: BNFC'Position -> String

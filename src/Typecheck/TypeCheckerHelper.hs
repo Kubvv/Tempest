@@ -15,6 +15,10 @@ argToType :: Arg -> EnvType
 argToType (VArg _ t _) = toEnvType t
 argToType (RArg _ t _) = toEnvType t
 
+argToPos :: Arg -> BNFC'Position
+argToPos (VArg pos _ _) = pos
+argToPos (RArg pos _ _) = pos
+
 exprToPos :: Expr -> BNFC'Position
 exprToPos (EVar pos _) = pos
 exprToPos (ELitInt pos _) = pos
@@ -51,9 +55,8 @@ nubfil [] = []
 nubfil (x:xs) = x : nubfil (P.filter (/=x) xs)
 
 -- Checks if some definition overrides some default function.
-defaultFunOverride :: [Def] -> Bool
-defaultFunOverride = P.foldr
-  (\ d -> (||) (show (defToIdent d) `elem` P.map (show . fst) defaults)) False
+defaultFunOverride :: Ident -> Bool
+defaultFunOverride d = d `elem` P.map fst defaults
 
 -- Converts args to arrays of identifiers and arg EnvTypes.
 argTypes :: [Arg] -> [(Ident, EnvType)]
@@ -78,3 +81,9 @@ isEqOperator :: RelOp -> Bool
 isEqOperator (OEq _) = True
 isEqOperator (ONe _) = True
 isEqOperator _ = False
+
+-- Checks if given type is a correct user type (int, bool or string).
+correctUserType :: Type -> Bool
+correctUserType TVoid {} = False
+correctUserType TFun {} = False
+correctUserType _ = True

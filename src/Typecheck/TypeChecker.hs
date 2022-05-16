@@ -14,7 +14,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 
--- Basic checks.
+--Basic checks.
 compareType :: BNFC'Position -> EnvType -> EnvType -> GetterMonad ()
 compareType pos et at =
   do
@@ -38,8 +38,8 @@ checkCondition b ex =
     unless b $
       throwError ex
 
--- Checks if all arguments that are passed by reference are variables.
--- If not checkRefs throws an appropriate exception.
+--Checks if all arguments that are passed by reference are variables.
+--If not checkRefs throws an appropriate exception.
 checkRefs :: [Bool] -> [Expr] -> Ident -> GetterMonad ()
 checkRefs [] _ _ = return ()
 checkRefs _ [] _ = return ()
@@ -50,8 +50,8 @@ checkRefs (b:bs) (e:es) id =
   else
     checkRefs bs es id
 
--- Checks if given function application matches the definition, aka
--- it checks the number of args, their types and reference passes.
+--Checks if given function application matches the definition, aka
+--it checks the number of args, their types and reference passes.
 checkFunction :: BNFC'Position -> Ident -> EnvType -> [Expr] -> GetterMonad EnvType 
 checkFunction pos id (EnvFun ret exTypes ref) args =
   do
@@ -66,7 +66,7 @@ checkFunction pos id (EnvFun ret exTypes ref) args =
 checkFunction pos _ t _ =
   throwError (NotAFunction pos t)
  
- -- Runs comparator for an expected type (EnvType) and actual type (which is evaluated from expr).
+--Runs comparator for an expected type (EnvType) and actual type (which is evaluated from expr).
 runComparator :: BNFC'Position -> EnvType -> Expr -> Env -> Either TypeCheckException ()
 runComparator pos ext e env = runExcept $ runReaderT (compareTypeExpr pos ext e) env
 
@@ -106,6 +106,15 @@ checkInitsRedef ((SInit pos def):stmts) set =
     else
       checkInitsRedef stmts (S.insert id set)
 checkInitsRedef (_:stmts) set = checkInitsRedef stmts set
+
+--Checks if all arguments have correct type (int, bool or string).
+areCorrectArgTypes :: [Arg] -> CheckerMonad
+areCorrectArgTypes [] = return ()
+areCorrectArgTypes (a:as) = 
+  if correctUserType $ getArgType a then
+    areCorrectArgTypes as
+  else
+    throwError (WrongTypeDefinitionException (argToPos a) (argToIdent a))
 
 getType :: Expr -> GetterMonad EnvType 
 
@@ -195,8 +204,6 @@ instance Checker Program where
 
   checkType (PProgram pos defs) =
     do
-      when (defaultFunOverride defs) $
-        throwError (DefaultOverrideException pos)
       checkDefs 1 defs S.empty
       mapM_ checkType defs
       checkMain $ findByIdent defs
@@ -207,9 +214,9 @@ instance Checker Def where
   checkType (GlDef pos t id e) =
     do
       env <- get
+      unless (correctUserType t) $
+        throwError (WrongTypeDefinitionException pos id)
       let ext = toEnvType t
-      when (ext == EnvVoid) $
-        throwError (VoidVarDefinitionException pos)
       checkResult $ runComparator pos ext e env
       put (pute env id ext)
 
@@ -218,6 +225,9 @@ instance Checker Def where
     do
       unless (uniqueArgs args) $
         throwError (DuplicateFunctionArgumentsException pos)
+      when (defaultFunOverride id) $
+        throwError (DefaultOverrideException pos)
+      areCorrectArgTypes args
       let stmts = blockToStmts block
       checkInitsRedef stmts (S.insert id (S.fromList (P.map argToIdent args)))
       env <- get
@@ -288,7 +298,7 @@ instance Checker Stmt where
     do
       env <- get
       case expectedReturnType env of
-        Just et -> checkCondition (et == EnvVoid) (BadType pos EnvVoid et)
+        Just et -> checkCondition (et == EnvVoid) (BadType pos et EnvVoid)
         Nothing -> throwError (UnexpectedReturn pos)
       put $ putir env True
 
