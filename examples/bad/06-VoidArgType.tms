@@ -1,0 +1,12 @@
+int fun(void x) {
+  return 2;
+}
+
+void voidFun() {
+  return;
+}
+
+void main() {
+  int l = fun(voidFun());
+  return;
+}
