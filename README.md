@@ -10,7 +10,7 @@ which can run in two modes:
 ```
 make
 ./interpreter       OR ./interpreter <program_name>.tms.
-#reading from stdin OR reading from file
+#reading from stdin OR reading from a file
 ```
 Reading from stdin can be terminated using ctrl+D.
 
@@ -50,7 +50,7 @@ Tempest has four build-in functions:
 ***
 All programs must start somewhere, and in case of Tempest they all should start in a zero argument procedure
 called main. Programs may contain comments - every character after a '//' symbol is ignored by the interpreter.
-If you opt for a multi-line text you can use a '/\*' symbol to begin and '/\*' to end a comment.
+If you opt for a multi-line text you can use a '/\*' symbol to begin and '\*/' to end a comment.
 
 ## Examples :cyclone:
 ***
