@@ -38,7 +38,7 @@ Interpreter analyzes passed code in three phases:
     - Interpreter may throw runtime exceptions, such as division by zero or no return encountered exceptions.
     - Files regarding this part are stationed in src/Interpret folder.
     
-## Build-in functions :tornado:
+## Built-in functions :tornado:
 ***    
 Tempest has four build-in functions:
 - error(), which throws an error called runtime exception, effectively stopping the program from further execution,
